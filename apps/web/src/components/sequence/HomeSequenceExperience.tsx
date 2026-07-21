@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { Facebook, Instagram, Search, Twitter } from "lucide-react";
+import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
 import { gsap, registerGsap, ScrollTrigger } from "@/animations/gsap.config";
 import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
 import { getHomeSequence } from "@/lib/home-sequence-service";
@@ -130,7 +130,7 @@ function SequenceLoading() {
       <img src={assets.hero} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45 saturate-[0.8]" />
       <div className="absolute inset-0 bg-[#253646]/72" />
 
-      <div data-loading-portal className="absolute overflow-hidden rounded-full bg-white/10 shadow-[0_0_28px_rgba(211,215,218,0.2)]">
+      {/* <div data-loading-portal className="absolute overflow-hidden rounded-full bg-white/10 shadow-[0_0_28px_rgba(211,215,218,0.2)]">
         <img src={assets.hero} alt="" className="h-full w-full object-cover" />
       </div>
 
@@ -143,38 +143,31 @@ function SequenceLoading() {
         <line
           data-loading-guide
           pathLength="1"
-          x1="49.55"
-          y1="12.35"
-          x2="31.9"
-          y2="27.1"
+          x1="48.95"
+          y1="7.35"
+          x2="25.9"
+          y2="33.5"
           stroke="currentColor"
           strokeLinecap="round"
           strokeWidth="1.15"
+          strokeDasharray="0.2 1.05"
           vectorEffect="non-scaling-stroke"
         />
         <line
           data-loading-guide
           pathLength="1"
-          x1="49.55"
-          y1="12.35"
-          x2="49.95"
-          y2="44.4"
+          x1="48.95"
+          y1="7.35"
+          x2="43.1"
+          y2="39.2"
           stroke="currentColor"
           strokeLinecap="round"
           strokeWidth="1.15"
           vectorEffect="non-scaling-stroke"
         />
-        <circle cx="49.55" cy="12.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
-        <path
-          d="M48.8 8.45H50.25L50.45 11.35H51.08L51.42 8.55H52.05L52.95 15.15"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.45"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+        <circle cx="48.95" cy="7.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
+        <GuideTopIcon />
+      </svg> */}
 
       <div className="absolute left-[6vw] top-[24vh] hidden size-[72px] md:block">
         <span className="absolute inset-0 rounded-full border border-white/55 bg-white/5 shadow-[0_0_18px_rgba(255,255,255,0.45)]" />
@@ -201,6 +194,12 @@ function AnimatedSequencePage() {
 
     registerGsap();
 
+    if (window.location.hash) {
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
     if (reducedMotion) {
       root.dataset.motion = "reduced";
       ScrollTrigger.refresh();
@@ -208,6 +207,82 @@ function AnimatedSequencePage() {
     }
 
     root.dataset.motion = "ready";
+
+    const markerObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.querySelectorAll<HTMLElement>("[data-scroll-marker]").forEach((marker) => {
+            marker.dataset.markerVisible = entry.isIntersecting ? "true" : "false";
+          });
+        });
+      },
+      {
+        root: null,
+        rootMargin: "-6% 0px -6% 0px",
+        threshold: 0.08
+      }
+    );
+
+    root.querySelectorAll<HTMLElement>("[data-marker-zone]").forEach((zone) => {
+      markerObserver.observe(zone);
+    });
+
+    const popImageObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          (entry.target as HTMLElement).dataset.popVisible = entry.isIntersecting ? "true" : "false";
+        });
+      },
+      {
+        root: null,
+        rootMargin: "0px 0px -10% 0px",
+        threshold: 0.06
+      }
+    );
+
+    root.querySelectorAll<HTMLElement>("[data-pop-image]").forEach((image) => {
+      popImageObserver.observe(image);
+    });
+
+    const featureLineObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const section = entry.target as HTMLElement;
+          const isVisible = entry.isIntersecting ? "true" : "false";
+          section.dataset.linesVisible = isVisible;
+          section.dataset.featureVisualsVisible = isVisible;
+        });
+      },
+      {
+        root: null,
+        rootMargin: "-18% 0px -18% 0px",
+        threshold: 0.18
+      }
+    );
+
+    const updateFeatureLineState = (section: HTMLElement) => {
+      const rect = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const isVisible = rect.top < viewportHeight * 0.82 && rect.bottom > viewportHeight * 0.18 ? "true" : "false";
+      section.dataset.linesVisible = isVisible;
+      section.dataset.featureVisualsVisible = isVisible;
+    };
+
+    const featureLineSections = root.querySelectorAll<HTMLElement>("[data-dark-feature]");
+
+    featureLineSections.forEach((section) => {
+      updateFeatureLineState(section);
+      featureLineObserver.observe(section);
+    });
+
+    const refreshFeatureLines = () => {
+      featureLineSections.forEach(updateFeatureLineState);
+    };
+
+    window.addEventListener("scroll", refreshFeatureLines, { passive: true });
+    window.addEventListener("resize", refreshFeatureLines);
+
+    let replayHeroIntroOnReturn: (() => void) | null = null;
 
     const context = gsap.context(() => {
       const heroStage = "[data-sequence-hero]";
@@ -228,53 +303,72 @@ function AnimatedSequencePage() {
         ease: "sine.inOut"
       });
 
-      gsap.to("[data-marker-core]", {
-        rotate: 7,
-        scale: 1.04,
-        duration: 1.4,
+      gsap.to("[data-marker-target]", {
+        keyframes: [
+          { x: 10, y: -9, duration: 0.9 },
+          { x: 18, y: 4, duration: 0.9 },
+          { x: 7, y: 11, duration: 0.8 },
+          { x: 0, y: 0, duration: 0.8 }
+        ],
         repeat: -1,
-        yoyo: true,
         ease: "sine.inOut"
       });
 
-      const heroTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: heroStage,
-          start: "top top",
-          end: "+=320%",
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true
-        }
-      });
+      const heroTimeline = gsap.timeline({ defaults: { ease: "sine.inOut" } });
 
       heroTimeline
+        .set(heroStage, { "--portal-x": "31.8%", "--portal-y": "54.6%", "--portal-r": "0.1vw" }, 0)
+        .set("[data-portal-image]", { scale: 1, xPercent: 0 }, 0)
+        .set("[data-dark-wash]", { autoAlpha: 1 }, 0)
+        .set("[data-hero-copy]", { autoAlpha: 0, y: 34 }, 0)
         .set("[data-guide-arm]", { autoAlpha: 0 }, 0)
-        .set("[data-guide-left]", { attr: { x1: 49.55, y1: 12.35, x2: 49.55, y2: 12.35 } }, 0)
-        .set("[data-guide-right]", { attr: { x1: 49.55, y1: 12.35, x2: 49.55, y2: 12.35 } }, 0)
-        .to(heroStage, { "--portal-x": "31.8%", "--portal-y": "56.6%", "--portal-r": "15.2vw", duration: 0.16, ease: "none" }, 0)
-        .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.05, ease: "none" }, 0.06)
-        .to("[data-guide-left]", { attr: { x2: 31.9, y2: 27.1 }, duration: 0.1, ease: "none" }, 0.07)
-        .to("[data-guide-right]", { attr: { x2: 49.95, y2: 44.4 }, duration: 0.1, ease: "none" }, 0.07)
-        .to(heroStage, { "--portal-x": "37%", "--portal-y": "57%", "--portal-r": "17.8vw", duration: 0.14, ease: "none" }, 0.18)
-        .to("[data-guide-left]", { attr: { x2: 25.4, y2: 33.8 }, duration: 0.2, ease: "none" }, 0.18)
-        .to("[data-guide-right]", { attr: { x2: 54.4, y2: 50.8 }, duration: 0.2, ease: "none" }, 0.18)
-        .to(heroStage, { "--portal-x": "55.8%", "--portal-y": "56.2%", "--portal-r": "18.7vw", duration: 0.2, ease: "none" }, 0.34)
-        .to("[data-guide-left]", { attr: { x2: 39.4, y2: 48.4 }, duration: 0.2, ease: "none" }, 0.34)
-        .to("[data-guide-right]", { attr: { x2: 56.4, y2: 51.7 }, duration: 0.2, ease: "none" }, 0.34)
-        .to("[data-guide-arm]", { autoAlpha: 0, duration: 0.08, ease: "none" }, 0.58)
-        .to(heroStage, { "--portal-x": "56%", "--portal-y": "55.2%", "--portal-r": "42vw", duration: 0.2, ease: "none" }, 0.64)
-        .to("[data-portal-image]", { scale: 1.05, xPercent: -1.8, ease: "none" }, 0)
-        .to(heroStage, { "--portal-x": "62%", "--portal-y": "51%", "--portal-r": "96vw", duration: 0.18, ease: "none" }, 0.84)
-        .to("[data-dark-wash]", { autoAlpha: 0, ease: "none" }, 0.88)
+        .set("[data-guide-left]", { attr: { x1: 52.05, y1: 7.35, x2: 52.05, y2: 7.35 } }, 0)
+        .set("[data-guide-right]", { attr: { x1: 52.05, y1: 7.35, x2: 52.05, y2: 7.35 } }, 0)
+        .set("[data-corner-mark] span", { scaleX: 0, scaleY: 0 }, 0)
+        .to(heroStage, { "--portal-r": "14.6vw", duration: 0.36, ease: "power2.out" }, 0.65)
+        .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.14, ease: "none" }, 0.74)
+        .to("[data-guide-left]", { attr: { x2: 25.9, y2: 33.5 }, duration: 0.14, ease: "none" }, 0.74)
+        .to("[data-guide-right]", { attr: { x2: 43.1, y2: 39.2 }, duration: 0.14, ease: "none" }, 0.74)
+        .to("[data-guide-left]", { attr: { x2: 25.4, y2: 30.1 }, duration: 1.1, ease: "power1.inOut" }, 0.65)
+        .to("[data-guide-right]", { attr: { x2: 54.9, y2: 47.5 }, duration: 1.1, ease: "power1.inOut" }, 0.65)
+        .to(heroStage, { "--portal-x": "37%", "--portal-r": "14.6vw", duration: 1.1, ease: "power1.inOut" }, 0.65)
+        .to(heroStage, { "--portal-x": "55.9%", "--portal-y": "54.6%", "--portal-r": "14.6vw", duration: 0.75, ease: "power1.inOut" }, 1.75)
+        .to("[data-guide-left]", { attr: { x2: 39.2, y2: 35.3 }, duration: 0.75, ease: "power1.inOut" }, 1.75)
+        .to("[data-guide-right]", { attr: { x2: 66.8, y2: 34 }, duration: 0.75, ease: "power1.inOut" }, 1.75)
+        .to(heroStage, { "--portal-r": "33.6vw", duration: 0.6, ease: "power2.inOut" }, 2.5)
+        .to("[data-guide-arm]", { autoAlpha: 0, duration: 0.35, ease: "sine.out" }, 2.78)
+        .to("[data-portal-image]", { scale: 1.05, xPercent: -1.8, duration: 4.5, ease: "sine.inOut" }, 0)
+        .to(heroStage, { "--portal-x": "62%", "--portal-y": "51%", "--portal-r": "96vw", duration: 1.15, ease: "power2.inOut" }, 3.1)
+        .to("[data-dark-wash]", { autoAlpha: 0, duration: 0.45, ease: "sine.out" }, 4.15)
         .fromTo(
           "[data-hero-copy]",
           { autoAlpha: 0, y: 34 },
-          { autoAlpha: 1, y: 0, stagger: 0.05, ease: "power2.out" },
-          0.9
+          { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power2.out" },
+          4.15
         )
-        .fromTo("[data-corner-mark] span", { scaleX: 0, scaleY: 0 }, { scaleX: 1, scaleY: 1, stagger: 0.04, ease: "none" }, 0.18);
+        .to("[data-corner-mark] span", { scaleX: 1, scaleY: 1, duration: 0.35, stagger: 0.04, ease: "sine.out" }, 4.15);
+
+      let hasLeftHero = false;
+      let previousScrollY = window.scrollY;
+
+      replayHeroIntroOnReturn = () => {
+        const currentScrollY = window.scrollY;
+        const isScrollingUp = currentScrollY < previousScrollY;
+        const replayLine = Math.max(180, window.innerHeight * 0.34);
+
+        if (currentScrollY > window.innerHeight * 0.9) {
+          hasLeftHero = true;
+        }
+
+        if (hasLeftHero && isScrollingUp && currentScrollY < replayLine && !heroTimeline.isActive()) {
+          hasLeftHero = false;
+          heroTimeline.restart(true, false);
+        }
+
+        previousScrollY = currentScrollY;
+      };
+
+      window.addEventListener("scroll", replayHeroIntroOnReturn, { passive: true });
 
       gsap.utils.toArray<HTMLElement>("[data-reveal-card]").forEach((card, index) => {
         gsap.fromTo(
@@ -295,34 +389,21 @@ function AnimatedSequencePage() {
           }
         );
       });
-
-      const featureTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: "[data-dark-feature]",
-          start: "top top",
-          end: "+=240%",
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true
-        }
-      });
-
-      featureTimeline
-        .fromTo("[data-artifact]", { autoAlpha: 0, scale: 0.18 }, { autoAlpha: 1, scale: 1, ease: "none" }, 0.08)
-        .fromTo(
-          "[data-conservation]",
-          { autoAlpha: 0, scaleY: 0.22, scaleX: 0.72 },
-          { autoAlpha: 1, scaleY: 1, scaleX: 1, ease: "none" },
-          0.25
-        )
-        .fromTo("[data-feature-line]", { scaleX: 0 }, { scaleX: 1, ease: "none" }, 0.44)
-        .fromTo("[data-feature-cta]", { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, ease: "power2.out" }, 0.62);
     }, root);
 
     requestAnimationFrame(() => ScrollTrigger.refresh());
 
-    return () => context.revert();
+    return () => {
+      window.removeEventListener("scroll", refreshFeatureLines);
+      window.removeEventListener("resize", refreshFeatureLines);
+      if (replayHeroIntroOnReturn) {
+        window.removeEventListener("scroll", replayHeroIntroOnReturn);
+      }
+      markerObserver.disconnect();
+      popImageObserver.disconnect();
+      featureLineObserver.disconnect();
+      context.revert();
+    };
   }, [reducedMotion]);
 
   const tickerText = useMemo(() => [...tickerItems, ...tickerItems].join("    "), []);
@@ -341,7 +422,7 @@ function AnimatedSequencePage() {
 function HeroSequence({ tickerText }: { tickerText: string }) {
   const portalStyle = {
     "--portal-x": "31.8%",
-    "--portal-y": "56.6%",
+    "--portal-y": "54.6%",
     "--portal-r": "0.1vw"
   } as CSSProperties;
 
@@ -357,7 +438,7 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
         />
       </div>
       <div data-dark-wash className="absolute inset-0 bg-[#243646]/72" />
-      <div data-intro-fade className="pointer-events-none absolute inset-0 z-30 bg-[#243646]">
+      <div data-intro-fade className="pointer-events-none absolute inset-0 z-10 bg-[#243646]">
         <img src={assets.hero} alt="" className="h-full w-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-[#243646]/50" />
       </div>
@@ -377,11 +458,11 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
 
       <HeroGuideOverlay />
 
-      <img src={assets.verticalLogo} alt="Al Fahidi Fort" className="absolute right-[2.5vw] top-[16vh] z-20 h-36 w-auto opacity-90" />
+      <img src={assets.verticalLogo} alt="Al Fahidi Fort" className="absolute right-4 top-[18vh] z-20 h-24 w-auto opacity-80 md:right-[2.5vw] md:top-[16vh] md:h-36 md:opacity-90" />
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
-      <div className="absolute bottom-[11vh] left-[6vw] z-20 max-w-[620px] text-white">
+      <div className="absolute bottom-[11vh] left-5 right-5 z-20 max-w-[620px] text-white md:left-[6vw] md:right-auto">
         <p data-hero-copy className="text-base font-semibold opacity-0 md:text-xl">
           Exhibition until <strong>29 JAN</strong>
         </p>
@@ -389,24 +470,24 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
           Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam.
         </p>
         <div data-hero-copy className="mt-4 flex flex-wrap items-end gap-5 opacity-0">
-          <h1 className="font-display text-[clamp(3.7rem,7vw,6.4rem)] leading-none text-white/85 [-webkit-text-stroke:1px_rgba(255,255,255,0.7)]">
+          <h1 className="font-display text-[clamp(2.6rem,15vw,6.4rem)] leading-none text-white/85 [-webkit-text-stroke:1px_rgba(255,255,255,0.7)]">
             Dubai Free Port
           </h1>
-          <Link href="#explore" className="mb-2 rounded-full border border-white/80 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-[#243646] md:text-base">
+          <Link href="#explore" className="mb-1 rounded-full border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-[#243646] md:mb-2 md:px-5 md:text-base">
             Learn more
           </Link>
         </div>
       </div>
 
-      <div data-corner-mark className="pointer-events-none absolute bottom-[15vh] right-[5vw] z-20 h-28 w-28 opacity-70">
+      <div data-corner-mark className="pointer-events-none absolute bottom-[15vh] right-5 z-20 h-20 w-20 opacity-70 md:right-[5vw] md:h-28 md:w-28">
         <span className="absolute bottom-0 right-0 h-px w-full origin-right bg-white/70" />
         <span className="absolute bottom-0 right-0 h-full w-px origin-bottom bg-white/70" />
         <span className="absolute bottom-6 right-1 h-px w-[72%] origin-right rotate-45 bg-white/70" />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-30 bg-[#eceff1] px-[2.6vw] py-4">
+      <div className="absolute bottom-0 left-0 right-0 z-30 bg-[#eceff1] px-3 py-3 md:px-[2.6vw] md:py-4">
         <div className="overflow-hidden rounded-full bg-[#995d3e] text-white">
-          <p className="w-max animate-[landing-marquee_28s_linear_infinite] whitespace-pre px-3 py-2 text-[clamp(1.35rem,2.25vw,2.5rem)] leading-none">
+          <p className="w-max animate-[landing-marquee_28s_linear_infinite] whitespace-pre px-3 py-2 text-[clamp(1rem,6vw,2.5rem)] leading-none">
             {tickerText}
           </p>
         </div>
@@ -427,38 +508,56 @@ function HeroGuideOverlay() {
       <line
         data-guide-arm
         data-guide-left
-        x1="49.55"
-        y1="12.35"
-        x2="49.55"
-        y2="12.35"
+        x1="52.05"
+        y1="7.35"
+        x2="52.05"
+        y2="7.35"
         stroke="currentColor"
         strokeLinecap="round"
         strokeWidth="1.15"
+        strokeDasharray="0.2 1.05"
         vectorEffect="non-scaling-stroke"
       />
       <line
         data-guide-arm
         data-guide-right
-        x1="49.55"
-        y1="12.35"
-        x2="49.55"
-        y2="12.35"
+        x1="52.05"
+        y1="7.35"
+        x2="52.05"
+        y2="7.35"
         stroke="currentColor"
         strokeLinecap="round"
         strokeWidth="1.15"
         vectorEffect="non-scaling-stroke"
       />
-      <circle data-guide-dot cx="49.55" cy="12.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
+      <circle data-guide-dot cx="52.05" cy="7.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
+      <GuideTopIcon />
+    </svg>
+  );
+}
+
+function GuideTopIcon() {
+  return (
+    <g data-guide-icon aria-hidden="true">
       <path
-        d="M48.8 8.45H50.25L50.45 11.35H51.08L51.42 8.55H52.05L52.95 15.15"
+        d="M50.85 5.25H51.75L52.05 7.35H52.62L53.22 10.95"
         fill="none"
         stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.7"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+        strokeWidth="1.15"
         vectorEffect="non-scaling-stroke"
       />
-    </svg>
+      <path
+        d="M51.95 5.25H52.68L52.68 7.35"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+        strokeWidth="1.15"
+        vectorEffect="non-scaling-stroke"
+      />
+    </g>
   );
 }
 
@@ -473,14 +572,43 @@ function FloatingMarkerIcon() {
 }
 
 function HeroHeader() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const updateHeaderState = () => {
+      setIsScrolled(window.scrollY > 24);
+      setIsMenuOpen(false);
+    };
+
+    updateHeaderState();
+    window.addEventListener("scroll", updateHeaderState, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", updateHeaderState);
+    };
+  }, []);
+
+  const navLinks = [
+    { href: "#experience", label: "Experience" },
+    { href: "#shop", label: "Shop" },
+    { href: "#whats-on", label: "What's on" },
+    { href: "#visit", label: "Visit" },
+    { href: "#explore", label: "Explore" }
+  ];
+
   return (
-    <header className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between gap-5 px-[3vw] py-8 text-[#d3d7da]">
-      <div className="grid min-w-[150px] gap-0.5 leading-none">
-        <span className="font-display text-3xl font-semibold">حكومة دبي</span>
+    <header
+      className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between gap-3 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:gap-5 md:px-[2.7vw] md:py-4 ${
+        isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"
+      }`}
+    >
+      <div className="grid min-w-[118px] gap-0.5 leading-none md:min-w-[150px]">
+        <span className="font-display text-xl font-semibold md:text-3xl">حكومة دبي</span>
         <span className="text-[10px] font-bold uppercase tracking-wide">Government of Dubai</span>
       </div>
 
-      <nav className="hidden flex-1 items-center justify-center gap-[clamp(1.4rem,3.1vw,4.4rem)] text-[clamp(1rem,1.35vw,1.45rem)] font-semibold md:flex">
+      <nav className="hidden flex-1 items-center justify-center gap-[clamp(1rem,2.05vw,2.55rem)] text-[clamp(1rem,1.28vw,1.35rem)] font-semibold md:flex">
         <Link href="#tickets" className="rounded-full border border-current px-7 py-1.5">Book Tickets</Link>
         <span className="flex items-center gap-4">
           <span>عربي</span>
@@ -489,13 +617,57 @@ function HeroHeader() {
         </span>
         <Link href="#experience">Experience</Link>
         <Link href="#shop">Shop</Link>
+        <span aria-hidden="true" className="relative h-14 w-[clamp(6.4rem,9.4vw,11rem)] shrink-0 text-[#d3d7da]">
+          <svg
+            className={`absolute left-[62%] top-1/2 h-24 w-40 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}
+            viewBox="46 2 14 12"
+            fill="none"
+          >
+            <circle cx="52.05" cy="7.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
+            <GuideTopIcon />
+          </svg>
+        </span>
         <Link href="#whats-on">What's on</Link>
         <Link href="#visit">Visit</Link>
         <Link href="#explore" className="underline underline-offset-4">Explore</Link>
       </nav>
 
-      <div className="hidden text-right text-[clamp(2.35rem,4vw,4.25rem)] font-black leading-none tracking-normal text-[#d3d7da] md:block">
-        حصن الفهيدي
+      <div className="hidden min-w-[clamp(160px,18vw,300px)] text-right font-black leading-none tracking-normal text-[#d3d7da] md:block">
+        <span className={`block transition-[font-size] duration-300 ${isScrolled ? "text-[clamp(2.25rem,3.2vw,3.7rem)]" : "text-[clamp(2.35rem,4vw,4.25rem)]"}`}>
+          حصن الفهيدي
+        </span>
+        <span className={`mt-1 block text-[clamp(1rem,1.35vw,1.45rem)] font-semibold leading-none transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>
+          Al Fahidi Fort
+        </span>
+      </div>
+
+      <button
+        type="button"
+        className="inline-grid size-11 place-items-center rounded-full border border-current text-[#d3d7da] md:hidden"
+        aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isMenuOpen}
+        onClick={() => setIsMenuOpen((open) => !open)}
+      >
+        {isMenuOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
+      </button>
+
+      <div
+        className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition md:hidden ${
+          isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"
+        }`}
+      >
+        <Link href="#tickets" onClick={() => setIsMenuOpen(false)} className="rounded-full border border-current px-5 py-2 text-center">
+          Book Tickets
+        </Link>
+        {navLinks.map((link) => (
+          <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
+            {link.label}
+          </Link>
+        ))}
+        <div className="flex items-center justify-between py-2 text-base">
+          <span>عربي</span>
+          <Search size={20} aria-hidden="true" />
+        </div>
       </div>
     </header>
   );
@@ -517,14 +689,14 @@ function SocialRail() {
 
 function EditorialStories() {
   return (
-    <section id="explore" className="bg-[#fbfbfb] px-9 py-8 md:py-14">
+    <section id="explore" className="bg-[#fbfbfb] px-5 py-8 md:px-9 md:py-14">
       <div className="mx-auto grid max-w-[1368px] gap-10">
-        <div className="grid grid-cols-[0.74fr_1.52fr] items-start gap-7">
+        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[0.74fr_1.52fr] md:gap-7">
           <FeaturedCeremonialCard />
           <WideHistoryCard />
         </div>
 
-        <div className="grid grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {secondaryStories.map((story) => (
             <StoryArticle key={story.title} story={story} />
           ))}
@@ -537,11 +709,9 @@ function EditorialStories() {
 function FeaturedCeremonialCard() {
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
-      <div className="relative aspect-square overflow-hidden bg-white">
-        <span className="absolute left-0 top-0 h-px w-20 bg-[#243646]/60" />
-        <span className="absolute left-0 top-0 h-20 w-px bg-[#243646]/60" />
-        <span className="absolute left-5 top-0 h-px w-16 origin-left rotate-45 bg-[#243646]/40" />
+      <div data-marker-zone data-pop-image data-push-pop className="relative aspect-square overflow-hidden bg-white">
         <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(155deg,transparent_0,transparent_5px,rgba(36,54,70,0.18)_6px,transparent_7px)]" />
+        <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
         <img src={assets.guidedObject} alt="Ceremonial exhibition object" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
       </div>
       <div className="grid gap-1">
@@ -561,13 +731,13 @@ function FeaturedCeremonialCard() {
 function WideHistoryCard() {
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
-      <div className="relative">
-        <div className="aspect-[1.95/1] overflow-hidden rounded-[999px] bg-white">
+      <div data-marker-zone className="relative">
+        <div data-pop-image data-push-pop className="aspect-[1.95/1] overflow-hidden rounded-[999px] bg-white">
           <img src={assets.fort} alt="Historic Al Fahidi Fort exhibition installation" className="h-full w-full object-cover grayscale" />
         </div>
-        <img src={assets.marker} alt="" className="absolute left-0 top-0 size-14 object-contain md:size-24" />
+        <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-24" />
       </div>
-      <div className="grid grid-cols-[0.92fr_1.08fr] gap-5">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[0.92fr_1.08fr] md:gap-5">
         <div>
           <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">A place where history meets future</h2>
           <p className="mt-1 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">Exhibition until 29 JAN</p>
@@ -592,14 +762,15 @@ function StoryArticle({ story }: { story: StoryCard }) {
       : story.variant === "portrait"
         ? "aspect-[0.76/1] rounded-[999px]"
         : "aspect-square rounded-full";
+  const imagePositionClass = story.title === "Origins and visions" ? "object-left" : "object-center";
 
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
-      <div className="relative">
+      <div data-marker-zone className="relative">
         <div className={`overflow-hidden bg-[#dde2e3] ${maskClass}`}>
-          <img src={story.image} alt={story.imageAlt} className="h-full w-full object-cover transition duration-700 hover:scale-105" />
+          <img src={story.image} alt={story.imageAlt} className={`h-full w-full object-cover ${imagePositionClass} transition duration-700 hover:scale-105`} />
         </div>
-        <img src={assets.marker} alt="" className="absolute left-0 top-0 size-14 object-contain md:size-20" />
+        <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-20" />
       </div>
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.2rem,3.2vw,3.2rem)] leading-[0.98] text-black">{story.title}</h2>
@@ -615,63 +786,106 @@ function StoryArticle({ story }: { story: StoryCard }) {
 
 function DarkFeature() {
   return (
-    <section data-dark-feature id="visit" className="relative overflow-hidden bg-[#243646] px-9 py-8 text-[#d3d7da] md:py-20">
-      <div className="mx-auto grid max-w-[1368px] grid-cols-[0.95fr_1.05fr] items-center gap-8 md:gap-12">
-        <div className="relative min-h-[360px] md:min-h-[520px]">
-          <span className="absolute left-0 top-0 rounded-full border border-[#d3d7da] px-3 py-0.5 text-[clamp(0.62rem,1.45vw,1rem)] font-semibold">Exhibition</span>
-          <span data-feature-line className="absolute left-[2%] top-[9%] h-px w-[58%] origin-left rotate-[31deg] bg-white/45" />
-          <span className="absolute left-[2%] top-[7%] hidden h-[52%] w-px rotate-[-5deg] bg-white/30 md:block" />
-
-          <div className="absolute left-[4%] top-[16%] z-10 max-w-[250px]">
-            <h2 className="font-display text-[clamp(1.55rem,5vw,5.4rem)] leading-[0.84] text-white">
-              Power of ceremonials
-            </h2>
-            <p className="mt-2 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-white/75">Exhibition until 29 JAN</p>
-            <p className="mt-2 text-[clamp(0.58rem,1.35vw,1rem)] leading-snug text-white/78">
-              Ceremonial objects reveal histories of authority, belonging and representation.
+    <section data-dark-feature id="visit" className="relative overflow-hidden bg-[#243646] text-[#d3d7da]">
+      <div className="grid gap-10 px-5 py-12 md:hidden">
+        <article className="grid gap-5">
+          <div className="w-max rounded-full border border-[#d3d7da] px-4 py-1 text-lg">Exhibition</div>
+          <div data-feature-visual className="relative aspect-square w-full max-w-[360px] justify-self-center">
+            <div className="absolute inset-0 rounded-full bg-[#66727e]" />
+            <img src={assets.guidedObject} alt="Ceremonial exhibition object" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
+          </div>
+          <div>
+            <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">Power of ceremonials</h2>
+            <p className="mt-2 text-base font-semibold">Exhibition until 29 JAN</p>
+            <p className="mt-4 max-w-[420px] text-base leading-snug">
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet.
             </p>
           </div>
+        </article>
 
-          <div data-artifact className="absolute bottom-0 left-[8%] aspect-square w-[min(48vw,420px)] origin-center rounded-full bg-[#66727e]">
-            <img src={assets.guidedObject} alt="Ceremonial exhibition object" className="absolute bottom-[-3%] left-[12%] h-[98%] w-[74%] object-contain" />
+        <article className="grid gap-5">
+          <div data-feature-visual data-conservation className="aspect-[1/1.05] w-full overflow-hidden rounded-t-full">
+            <img src={assets.conservation} alt="Museum conservation care" className="h-full w-full object-cover grayscale" />
           </div>
+          <div>
+            <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">Conservation and care</h3>
+            <p className="mt-2 text-base font-semibold">Exhibition until 29 JAN</p>
+          </div>
+          <Link href="#guided-tour" className="inline-flex h-11 w-max items-center justify-center rounded-full border border-[#d3d7da] px-5 text-lg transition hover:bg-white hover:text-[#243646]">
+            Guide Tour
+          </Link>
+        </article>
+      </div>
+
+      <div className="relative mx-auto hidden aspect-[1440/860] w-full max-w-[1440px] overflow-hidden bg-[#243646] md:block">
+        <svg className="pointer-events-none absolute inset-0 z-10 size-full text-[#d3d7da]" viewBox="0 0 1440 860" preserveAspectRatio="none" aria-hidden="true">
+          <line data-artifact-line x1="208" y1="31" x2="558" y2="245" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+          <line data-artifact-line x1="36" y1="56" x2="78" y2="522" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+          <line data-conservation-line x1="816" y1="779" x2="960" y2="294" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+          <line data-conservation-line x1="986" y1="808" x2="1404" y2="537" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+        </svg>
+
+        <div data-feature-visual className="absolute left-[5.9%] top-[22.56%] aspect-square w-[39.86%]">
+          <div className="absolute inset-0 rounded-full bg-[#66727e]" />
+          <img
+            data-artifact
+            src={assets.guidedObject}
+            alt="Ceremonial exhibition object"
+            className="absolute left-[10.45%] top-[-3.4%] h-[108.9%] w-[79.1%] object-cover"
+          />
         </div>
 
-        <div className="relative min-h-[380px] md:min-h-[560px]">
-          <span className="absolute left-[5%] top-[22%] h-px w-[40%] origin-left rotate-[-73deg] bg-white/40" />
-          <span className="absolute bottom-[17%] right-[2%] h-px w-[42%] origin-right rotate-[-33deg] bg-white/40" />
-
-          <div data-conservation className="absolute right-[5%] top-0 h-[min(55vw,430px)] w-[min(44vw,420px)] origin-bottom overflow-hidden rounded-t-full bg-white/10">
-            <img src={assets.conservation} alt="Museum conservation care" className="h-full w-full object-cover" />
-          </div>
-
-          <div className="absolute bottom-[6%] left-[10%] max-w-[330px]">
-            <h3 className="font-display text-[clamp(1.55rem,5vw,5.7rem)] leading-[0.86] text-white/90">Conservation and care</h3>
-            <p className="mt-2 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-white/70">Exhibition until 29 JAN</p>
-            <Link
-              data-feature-cta
-              href="#guided-tour"
-              className="mt-5 inline-flex rounded-full border border-white/70 px-4 py-1 text-[clamp(0.62rem,1.4vw,1rem)] font-semibold text-white transition hover:bg-white hover:text-[#243646]"
-            >
-              Guide Tour
-            </Link>
-          </div>
+        <div className="absolute left-[5.9%] top-[8.72%] z-20 w-[15.97%] font-display text-[#d3d7da]">
+          <h2 className="text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">Power of ceremonials</h2>
+          <p className="mt-1 whitespace-nowrap text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
+            <span className="text-white">Exhibition until </span>
+            <span>29 JAN</span>
+          </p>
+          <p className="mt-[6px] text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+          </p>
         </div>
+
+        <div className="absolute left-[2.5%] top-[2.79%] z-20 flex w-[11.53%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%]">
+          <span className="font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da]">Exhibition</span>
+        </div>
+
+        <div data-feature-visual data-conservation className="absolute left-[66.04%] top-[8.95%] h-[52.91%] w-[31.46%] overflow-hidden rounded-t-full">
+          <img src={assets.conservation} alt="Museum conservation care" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
+        </div>
+
+        <div className="absolute left-[65.76%] top-[64.19%] z-20 w-[18.19%] font-display text-[#d3d7da]">
+          <h3 className="whitespace-pre-wrap text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{`Conservation \nand care`}</h3>
+          <p className="whitespace-nowrap text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
+            <span className="text-white">Exhibition until </span>
+            <span>29 JAN</span>
+          </p>
+        </div>
+
+        <Link
+          href="#guided-tour"
+          className="absolute left-[56.67%] top-[91.4%] z-20 flex w-[13.61%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%] font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da] transition hover:bg-white hover:text-[#243646]"
+        >
+          Guide Tour
+        </Link>
       </div>
     </section>
   );
+
 }
 
 function ClosingExhibitionBand() {
   return (
-    <section id="guided-tour" className="bg-[#e9ebec] px-9 py-8 md:py-16">
-      <div className="mx-auto grid max-w-[1368px] grid-cols-[1.25fr_0.75fr] gap-8 md:gap-12">
+    <section id="guided-tour" className="bg-[#e9ebec] px-5 pb-10 pt-6 md:px-9 md:pb-16 md:pt-8">
+      <div className="mx-auto grid max-w-[1368px] grid-cols-1 gap-10 md:grid-cols-[1.25fr_0.75fr] md:gap-12">
         <article className="grid gap-6">
-          <div className="relative overflow-hidden rounded-full bg-white">
-            <img src={assets.trade} alt="Historic exhibition source material" className="aspect-[1.95/1] h-full w-full object-cover grayscale" />
-            <img src={assets.marker} alt="" className="absolute left-0 top-0 size-16 object-contain md:size-24" />
+          <div data-marker-zone className="relative">
+            <div data-pop-image className="relative aspect-[1.95/1] overflow-hidden rounded-full bg-transparent">
+              <img src={assets.trade} alt="Historic exhibition source material" className="absolute left-1/2 top-1/2 h-[118%] w-[118%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover object-center grayscale" />
+            </div>
+            <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
-          <div className="grid grid-cols-[0.95fr_1.05fr] gap-5 md:gap-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.95fr_1.05fr] md:gap-6">
             <div>
               <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">Back to the source</h2>
               <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">Exhibition until 29 JAN</p>
@@ -680,7 +894,7 @@ function ClosingExhibitionBand() {
               <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">
                 Source material, archival traces and object studies connect the fort story to daily life, trade, craft and conservation.
               </p>
-              <Link href="#explore" className="w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
+              <Link href="#explore" className="inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
                 Learn more
               </Link>
             </div>
@@ -688,11 +902,11 @@ function ClosingExhibitionBand() {
         </article>
 
         <article className="grid content-start gap-6">
-          <div className="relative">
-            <div className="overflow-hidden rounded-full bg-white">
-              <img src={assets.ceremonialStone} alt="Ceremonial exhibition detail" className="aspect-square h-full w-full object-cover" />
+          <div data-marker-zone className="relative">
+            <div data-pop-image className="aspect-square overflow-hidden rounded-full bg-white">
+              <img src={assets.ceremonialStone} alt="Ceremonial exhibition detail" className="h-full w-full object-cover" />
             </div>
-            <img src={assets.marker} alt="" className="absolute left-0 top-0 size-16 object-contain md:size-24" />
+            <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div>
             <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">Power of ceremonials</h2>
@@ -700,7 +914,7 @@ function ClosingExhibitionBand() {
             <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">
               Objects and rituals reveal the symbols, materials and gestures behind public life.
             </p>
-            <Link href="#visit" className="mt-5 inline-flex rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
+            <Link href="#visit" className="mt-5 inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
               Learn more
             </Link>
           </div>
@@ -712,8 +926,8 @@ function ClosingExhibitionBand() {
 
 function SiteFooter() {
   return (
-    <footer className="bg-[#bec3c7] px-9 py-8 text-black md:py-10">
-      <div className="mx-auto grid max-w-[1368px] grid-cols-[1fr_auto_1fr] items-center gap-6 md:gap-10">
+    <footer className="bg-[#bec3c7] px-5 py-8 text-black md:px-9 md:py-10">
+      <div className="mx-auto grid max-w-[1368px] grid-cols-1 items-start gap-8 md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-10">
         <div>
           <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] font-semibold uppercase">Stay connected</p>
           <p className="mt-2 max-w-[420px] text-[clamp(0.58rem,1.25vw,0.875rem)] leading-snug">Receive email updates on our exhibitions, events, and more.</p>
@@ -730,7 +944,7 @@ function SiteFooter() {
           <span className="block text-[clamp(0.5rem,1.25vw,0.875rem)] font-semibold tracking-normal">Culture & Arts</span>
         </div>
 
-        <div className="text-right">
+        <div className="text-left md:text-right">
           <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] font-semibold uppercase">Contact us</p>
           <p className="mt-2 text-[clamp(0.58rem,1.25vw,0.875rem)]">FAQs | Disclaimer | Terms of use | Privacy Policy</p>
           <p className="mt-2 text-[clamp(0.58rem,1.25vw,0.875rem)]">Contact Us Tel. 80033222</p>
