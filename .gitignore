@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Framework/build output
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+.vercel/
+
+# TypeScript incremental output
+*.tsbuildinfo
+
+# Environment and local overrides
+.env
+.env.*
+!.env.example
+*.local
+Dockerfile.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Payload/CMS generated files
+postgres-data/
+payload-generated-schema.graphql
+payload-types.ts
+
+# Local reference/source dumps not intended for GitHub
+ignore/
+Al Fahidi Fort_Website-Animation.mp4
+prompt.txt
+
+# Browser verification profiles and captures
+.chrome*/
+.edge*/
+.verify-*.png
+.chrome-*.png
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

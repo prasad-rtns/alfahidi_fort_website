@@ -1,0 +1,25 @@
+{
+  "name": "alfahidi-fort-website",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @alfahidi/web",
+    "dev:web": "npm run dev --workspace @alfahidi/web",
+    "dev:cms": "npm run dev --workspace @alfahidi/cms",
+    "build": "npm run build --workspaces --if-present",
+    "build:web": "npm run build --workspace @alfahidi/web",
+    "build:cms": "npm run build --workspace @alfahidi/cms",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  }
+}

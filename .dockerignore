@@ -1,0 +1,14 @@
+**/node_modules
+**/.next
+**/dist
+**/build
+**/coverage
+**/.turbo
+**/*.log
+.git
+.env
+.env.*
+!.env.example
+npm-debug.log
+ignore
+Al Fahidi Fort_Website-Animation.mp4

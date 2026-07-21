@@ -1,0 +1,43 @@
+[
+  {
+    "order": 1,
+    "scene": "Historical introduction",
+    "title": "From creek settlement to civic memory",
+    "description": "The story begins with the fort as a point of protection, exchange, and daily life beside the creek. Archival imagery frames Dubai before the skyline, placing the visitor inside the earliest urban memory of the museum.",
+    "image": "/assets/home/356eeb935f5a39de2e9ab67426a8bc8942bce0d9.png",
+    "video": null,
+    "animationType": "fade"
+  },
+  {
+    "order": 2,
+    "scene": "Architecture",
+    "title": "Walls, towers, wind and shade",
+    "description": "The architecture scene studies the fort as a working structure: compact defensive geometry, tactile surfaces, shaded rooms, and local construction logic shaped by climate and movement.",
+    "image": "/assets/home/48674090da258a61c791cd00ca04f0ab5eae5098.png",
+    "video": null,
+    "animationType": "maskReveal"
+  },
+  {
+    "order": 3,
+    "scene": "Timeline",
+    "title": "A timeline mapped through objects",
+    "description": "Objects become markers in time. Scroll movement connects trade, ceremony, conservation, and interpretation through a guided timeline rather than a static wall of dates.",
+    "image": "/assets/home/ca9b0d43c0a9a3e9707c0ffbdcb128a1d40e4f45.png",
+    "video": null,
+    "animationType": "slide"
+  },
+  {
+    "order": 4,
+    "scene": "Gallery",
+    "title": "Gallery of living heritage",
+    "description": "The final scene opens into a gallery rhythm using the prototype imagery: circular masks, wide photographic cuts, and layered images that move at different speeds as the tour continues.",
+    "image": "/assets/home/d236e945a5044c14489b2e7ea53c5604cf70cc94.png",
+    "video": null,
+    "animationType": "parallax",
+    "galleryImages": [
+      "/assets/home/a54ffe563d6773bc2f60c942869ba6f6d13be927.png",
+      "/assets/home/a414256e0f2e38adbace65848e8d7ac41adebc32.png",
+      "/assets/home/c7d7122132398baf8c2664cd0d16250039849475.png"
+    ]
+  }
+]
