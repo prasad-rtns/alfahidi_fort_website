@@ -1,5 +1,21 @@
 import type { Metadata } from "next";
+import type { ServerFunctionClient } from "payload";
+import config from "@payload-config";
+import { handleServerFunctions, RootLayout as PayloadRootLayout } from "@payloadcms/next/layouts";
 import React from "react";
+import { importMap } from "./(payload)/admin/importMap";
+
+const configPromise = Promise.resolve(config);
+
+const serverFunction: ServerFunctionClient = async (args) => {
+  "use server";
+
+  return handleServerFunctions({
+    ...args,
+    config: configPromise,
+    importMap
+  });
+};
 
 export const metadata: Metadata = {
   title: "Al Fahidi Fort CMS"
@@ -7,8 +23,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <PayloadRootLayout config={configPromise} importMap={importMap} serverFunction={serverFunction}>
+      {children}
+    </PayloadRootLayout>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
 import { gsap, registerGsap, ScrollTrigger } from "@/animations/gsap.config";
@@ -44,6 +44,11 @@ const tickerItems = [
   "MORE EVENTS ON SUNDAY",
   "DUBAI FREE PORT"
 ];
+
+const HERO_GUIDE_FALLBACK_ANCHOR_X = 55.7;
+const HERO_GUIDE_FALLBACK_ANCHOR_Y = 7.35;
+const HERO_GUIDE_ICON_WIDTH = 2.65;
+const HERO_GUIDE_ICON_HEIGHT = 6.5;
 
 const primaryStories: StoryCard[] = [
   {
@@ -282,6 +287,74 @@ function AnimatedSequencePage() {
     window.addEventListener("scroll", refreshFeatureLines, { passive: true });
     window.addEventListener("resize", refreshFeatureLines);
 
+    let guideAnchor = {
+      x: HERO_GUIDE_FALLBACK_ANCHOR_X,
+      y: HERO_GUIDE_FALLBACK_ANCHOR_Y
+    };
+    let guideAnchorFrame = 0;
+
+    const measureHeroGuideAnchor = () => {
+      const anchor = root.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+      const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
+
+      if (!anchor || !overlay) return guideAnchor;
+
+      const anchorRect = anchor.getBoundingClientRect();
+      const overlayRect = overlay.getBoundingClientRect();
+
+      if (anchorRect.width === 0 || overlayRect.width === 0 || overlayRect.height === 0) {
+        return guideAnchor;
+      }
+
+      return {
+        x: ((anchorRect.left + anchorRect.width / 2 - overlayRect.left) / overlayRect.width) * 100,
+        y: ((anchorRect.top + anchorRect.height / 2) / overlayRect.height) * 100
+      };
+    };
+
+    const applyHeroGuideAnchor = ({ resetArms = false } = {}) => {
+      guideAnchor = measureHeroGuideAnchor();
+
+      const emblem = root.querySelector<SVGSVGElement>("[data-guide-emblem]");
+      const dot = root.querySelector<SVGCircleElement>("[data-guide-dot]");
+
+      emblem?.setAttribute("x", String(guideAnchor.x - HERO_GUIDE_ICON_WIDTH / 2));
+      emblem?.setAttribute("y", String(guideAnchor.y - HERO_GUIDE_ICON_HEIGHT / 2));
+      dot?.setAttribute("cx", String(guideAnchor.x));
+      dot?.setAttribute("cy", String(guideAnchor.y));
+
+      root.querySelectorAll<SVGLineElement>("[data-guide-arm]").forEach((line) => {
+        line.setAttribute("x1", String(guideAnchor.x));
+        line.setAttribute("y1", String(guideAnchor.y));
+
+        if (resetArms) {
+          line.setAttribute("x2", String(guideAnchor.x));
+          line.setAttribute("y2", String(guideAnchor.y));
+        }
+      });
+    };
+
+    const resetHeroGuideArms = () => {
+      applyHeroGuideAnchor({ resetArms: true });
+      gsap.set("[data-guide-arm]", { autoAlpha: 0 });
+    };
+
+    const scheduleHeroGuideAnchor = () => {
+      window.cancelAnimationFrame(guideAnchorFrame);
+      guideAnchorFrame = window.requestAnimationFrame(() => applyHeroGuideAnchor());
+    };
+
+    const guideAnchorElement = root.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+    const guideAnchorObserver =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleHeroGuideAnchor);
+
+    if (guideAnchorElement) {
+      guideAnchorObserver?.observe(guideAnchorElement);
+    }
+
+    resetHeroGuideArms();
+    window.addEventListener("resize", scheduleHeroGuideAnchor);
+
     let replayHeroIntroOnReturn: (() => void) | null = null;
 
     const context = gsap.context(() => {
@@ -305,9 +378,9 @@ function AnimatedSequencePage() {
 
       gsap.to("[data-marker-target]", {
         keyframes: [
-          { x: 10, y: -9, duration: 0.9 },
-          { x: 18, y: 4, duration: 0.9 },
-          { x: 7, y: 11, duration: 0.8 },
+          { x: 14, y: -12, duration: 0.9 },
+          { x: 24, y: 6, duration: 0.9 },
+          { x: 9, y: 16, duration: 0.8 },
           { x: 0, y: 0, duration: 0.8 }
         ],
         repeat: -1,
@@ -321,16 +394,13 @@ function AnimatedSequencePage() {
         .set("[data-portal-image]", { scale: 1, xPercent: 0 }, 0)
         .set("[data-dark-wash]", { autoAlpha: 1 }, 0)
         .set("[data-hero-copy]", { autoAlpha: 0, y: 34 }, 0)
-        .set("[data-guide-arm]", { autoAlpha: 0 }, 0)
-        .set("[data-guide-left]", { attr: { x1: 52.05, y1: 7.35, x2: 52.05, y2: 7.35 } }, 0)
-        .set("[data-guide-right]", { attr: { x1: 52.05, y1: 7.35, x2: 52.05, y2: 7.35 } }, 0)
+        .call(resetHeroGuideArms, undefined, 0)
         .set("[data-corner-mark] span", { scaleX: 0, scaleY: 0 }, 0)
         .to(heroStage, { "--portal-r": "14.6vw", duration: 0.36, ease: "power2.out" }, 0.65)
-        .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.14, ease: "none" }, 0.74)
-        .to("[data-guide-left]", { attr: { x2: 25.9, y2: 33.5 }, duration: 0.14, ease: "none" }, 0.74)
-        .to("[data-guide-right]", { attr: { x2: 43.1, y2: 39.2 }, duration: 0.14, ease: "none" }, 0.74)
-        .to("[data-guide-left]", { attr: { x2: 25.4, y2: 30.1 }, duration: 1.1, ease: "power1.inOut" }, 0.65)
-        .to("[data-guide-right]", { attr: { x2: 54.9, y2: 47.5 }, duration: 1.1, ease: "power1.inOut" }, 0.65)
+        .call(resetHeroGuideArms, undefined, 0.73)
+        .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.01, ease: "none" }, 0.74)
+        .to("[data-guide-left]", { attr: { x2: 25.4, y2: 30.1 }, duration: 1.01, ease: "power1.inOut" }, 0.74)
+        .to("[data-guide-right]", { attr: { x2: 54.9, y2: 47.5 }, duration: 1.01, ease: "power1.inOut" }, 0.74)
         .to(heroStage, { "--portal-x": "37%", "--portal-r": "14.6vw", duration: 1.1, ease: "power1.inOut" }, 0.65)
         .to(heroStage, { "--portal-x": "55.9%", "--portal-y": "54.6%", "--portal-r": "14.6vw", duration: 0.75, ease: "power1.inOut" }, 1.75)
         .to("[data-guide-left]", { attr: { x2: 39.2, y2: 35.3 }, duration: 0.75, ease: "power1.inOut" }, 1.75)
@@ -362,7 +432,8 @@ function AnimatedSequencePage() {
 
         if (hasLeftHero && isScrollingUp && currentScrollY < replayLine && !heroTimeline.isActive()) {
           hasLeftHero = false;
-          heroTimeline.restart(true, false);
+          resetHeroGuideArms();
+          heroTimeline.invalidate().restart(true, false);
         }
 
         previousScrollY = currentScrollY;
@@ -396,6 +467,9 @@ function AnimatedSequencePage() {
     return () => {
       window.removeEventListener("scroll", refreshFeatureLines);
       window.removeEventListener("resize", refreshFeatureLines);
+      window.removeEventListener("resize", scheduleHeroGuideAnchor);
+      window.cancelAnimationFrame(guideAnchorFrame);
+      guideAnchorObserver?.disconnect();
       if (replayHeroIntroOnReturn) {
         window.removeEventListener("scroll", replayHeroIntroOnReturn);
       }
@@ -446,7 +520,7 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
       <HeroHeader />
       <SocialRail />
 
-      <div data-left-marker className="absolute left-[3.8vw] top-[24vh] z-20 hidden size-[88px] md:block">
+      <div data-left-marker className="absolute left-[4.8vw] top-[20vh] z-20 hidden size-[88px] md:block">
         <span data-marker-target className="absolute left-0 top-0 size-[72px] will-change-transform">
           <span data-marker-halo className="absolute inset-0 rounded-full border border-white/55 bg-white/5 shadow-[0_0_18px_rgba(255,255,255,0.55)]" />
           <span className="absolute inset-[-8px] rounded-full border border-white/15" />
@@ -497,6 +571,8 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
 }
 
 function HeroGuideOverlay() {
+  const clipId = `${useId().replace(/:/g, "")}-hero-emblem`;
+
   return (
     <svg
       data-guide-overlay
@@ -505,13 +581,25 @@ function HeroGuideOverlay() {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
+      <svg
+        data-guide-emblem
+        x={HERO_GUIDE_FALLBACK_ANCHOR_X - HERO_GUIDE_ICON_WIDTH / 2}
+        y={HERO_GUIDE_FALLBACK_ANCHOR_Y - HERO_GUIDE_ICON_HEIGHT / 2}
+        width={HERO_GUIDE_ICON_WIDTH}
+        height={HERO_GUIDE_ICON_HEIGHT}
+        viewBox="0 0 36 59"
+        preserveAspectRatio="none"
+        overflow="visible"
+      >
+        <FortEmblemPaths clipId={clipId} includeDot={false} />
+      </svg>
       <line
         data-guide-arm
         data-guide-left
-        x1="52.05"
-        y1="7.35"
-        x2="52.05"
-        y2="7.35"
+        x1={HERO_GUIDE_FALLBACK_ANCHOR_X}
+        y1={HERO_GUIDE_FALLBACK_ANCHOR_Y}
+        x2={HERO_GUIDE_FALLBACK_ANCHOR_X}
+        y2={HERO_GUIDE_FALLBACK_ANCHOR_Y}
         stroke="currentColor"
         strokeLinecap="round"
         strokeWidth="1.15"
@@ -521,18 +609,35 @@ function HeroGuideOverlay() {
       <line
         data-guide-arm
         data-guide-right
-        x1="52.05"
-        y1="7.35"
-        x2="52.05"
-        y2="7.35"
+        x1={HERO_GUIDE_FALLBACK_ANCHOR_X}
+        y1={HERO_GUIDE_FALLBACK_ANCHOR_Y}
+        x2={HERO_GUIDE_FALLBACK_ANCHOR_X}
+        y2={HERO_GUIDE_FALLBACK_ANCHOR_Y}
         stroke="currentColor"
         strokeLinecap="round"
         strokeWidth="1.15"
         vectorEffect="non-scaling-stroke"
       />
-      <circle data-guide-dot cx="52.05" cy="7.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
-      <GuideTopIcon />
+      <circle data-guide-dot cx={HERO_GUIDE_FALLBACK_ANCHOR_X} cy={HERO_GUIDE_FALLBACK_ANCHOR_Y} r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
     </svg>
+  );
+}
+
+function FortEmblemPaths({ clipId, includeDot = true }: { clipId: string; includeDot?: boolean }) {
+  return (
+    <>
+      <g clipPath={`url(#${clipId})`}>
+        <path d={svgPaths.pc43c700} fill="white" />
+        {includeDot ? <path d={svgPaths.p1ff74880} fill="white" /> : null}
+        <path d={svgPaths.p12623b00} fill="white" />
+        <path d={svgPaths.p1baffc80} fill="white" />
+      </g>
+      <defs>
+        <clipPath id={clipId}>
+          <rect fill="white" height="59" width="36" />
+        </clipPath>
+      </defs>
+    </>
   );
 }
 
@@ -568,6 +673,24 @@ function FloatingMarkerIcon() {
       <path d={svgPaths.pbd94700} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.9" />
       <path d={svgPaths.p2ca31cf0} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.9" />
     </svg>
+  );
+}
+
+function AlFahidiFortEmblem({ isScrolled }: { isScrolled: boolean }) {
+  const clipId = `${useId().replace(/:/g, "")}-nav-emblem`;
+
+  return (
+    <span data-hero-guide-anchor className="relative grid h-[clamp(2.8rem,3.85vw,3.45rem)] w-[clamp(1.35rem,2.05vw,1.8rem)] shrink-0 place-items-center self-center">
+      <svg
+        className={`block size-full transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}
+        fill="none"
+        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 36 59"
+        aria-hidden="true"
+      >
+        <FortEmblemPaths clipId={clipId} />
+      </svg>
+    </span>
   );
 }
 
@@ -617,16 +740,7 @@ function HeroHeader() {
         </span>
         <Link href="#experience">Experience</Link>
         <Link href="#shop">Shop</Link>
-        <span aria-hidden="true" className="relative h-14 w-[clamp(6.4rem,9.4vw,11rem)] shrink-0 text-[#d3d7da]">
-          <svg
-            className={`absolute left-[62%] top-1/2 h-24 w-40 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}
-            viewBox="46 2 14 12"
-            fill="none"
-          >
-            <circle cx="52.05" cy="7.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
-            <GuideTopIcon />
-          </svg>
-        </span>
+         <AlFahidiFortEmblem isScrolled={isScrolled} />
         <Link href="#whats-on">What's on</Link>
         <Link href="#visit">Visit</Link>
         <Link href="#explore" className="underline underline-offset-4">Explore</Link>
@@ -675,9 +789,9 @@ function HeroHeader() {
 
 function SocialRail() {
   return (
-    <aside className="absolute bottom-[12vh] left-3 top-[41vh] z-20 hidden w-10 flex-col items-center justify-between text-[#d3d7da] md:flex">
+    <aside className="absolute bottom-[24vh] left-3 top-[34vh] z-20 hidden w-10 flex-col items-center justify-between text-[#d3d7da] md:flex">
       <p className="rotate-[-90deg] whitespace-nowrap text-lg font-semibold">@alfahidifort</p>
-      <div className="grid gap-3">
+      <div className="grid -translate-y-4 gap-3">
         <Instagram size={20} aria-label="Instagram" />
         <Facebook size={20} aria-label="Facebook" />
         <Twitter size={20} aria-label="Twitter" />

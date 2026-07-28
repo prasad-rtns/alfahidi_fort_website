@@ -29,12 +29,15 @@ services:
     build:
       context: ..
       dockerfile: apps/cms/Dockerfile
+      args:
+        CMS_ASSET_PREFIX: ${CMS_ASSET_PREFIX:-/cms-assets}
     environment:
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-change-me}
       PAYLOAD_PUBLIC_SERVER_URL: ${PAYLOAD_PUBLIC_SERVER_URL:-http://localhost:8088}
       DATABASE_URI: postgres://${POSTGRES_USER:-payload}:${POSTGRES_PASSWORD:-payload}@postgres:5432/${POSTGRES_DB:-alfahidi}
       CMS_REVALIDATE_URL: http://web:3000/api/revalidate
       CMS_REVALIDATE_SECRET: ${REVALIDATE_SECRET:-change-me}
+      CMS_ASSET_PREFIX: ${CMS_ASSET_PREFIX:-/cms-assets}
     depends_on:
       postgres:
         condition: service_healthy

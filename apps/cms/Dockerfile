@@ -9,6 +9,8 @@ COPY packages/shared-types/package.json packages/shared-types/package.json
 RUN npm install --include=dev
 
 FROM base AS builder
+ARG CMS_ASSET_PREFIX=
+ENV CMS_ASSET_PREFIX=$CMS_ASSET_PREFIX
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build:cms
