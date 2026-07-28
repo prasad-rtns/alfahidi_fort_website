@@ -6,8 +6,10 @@ import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
 import { gsap, registerGsap, ScrollTrigger } from "@/animations/gsap.config";
 import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
 import { getHomeSequence } from "@/lib/home-sequence-service";
+import { getTranslations, type HomeSequenceTranslation } from "@/lib/i18n/translations";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
 import type { HomeSequencePayload } from "@/types/home-sequence";
+import type { Locale } from "@/lib/content/site-content";
 
 type RequestState =
   | { status: "loading"; data: null }
@@ -38,14 +40,9 @@ const assets = {
   ceremonialStone: "/assets/home/c7d7122132398baf8c2664cd0d16250039849475.png"
 };
 
-const tickerItems = [
-  "DUBAI FREE PORT EXHIBITION UNTIL 29TH JANUARY",
-  "OPEN TODAY: 10:30 AM - 6 PM",
-  "MORE EVENTS ON SUNDAY",
-  "DUBAI FREE PORT"
-];
+type SequenceCopy = HomeSequenceTranslation;
 
-const HERO_GUIDE_FALLBACK_ANCHOR_X = 55.7;
+const HERO_GUIDE_FALLBACK_ANCHOR_X = 65.7;
 const HERO_GUIDE_FALLBACK_ANCHOR_Y = 7.35;
 const HERO_GUIDE_ICON_WIDTH = 2.65;
 const HERO_GUIDE_ICON_HEIGHT = 6.5;
@@ -96,7 +93,7 @@ const secondaryStories: StoryCard[] = [
   }
 ];
 
-export function HomeSequenceExperience({ fallback }: { fallback: React.ReactNode }) {
+export function HomeSequenceExperience({ fallback, locale }: { fallback: React.ReactNode; locale: Locale }) {
   const [state, setState] = useState<RequestState>({ status: "loading", data: null });
 
   useEffect(() => {
@@ -126,7 +123,7 @@ export function HomeSequenceExperience({ fallback }: { fallback: React.ReactNode
     return <>{fallback}</>;
   }
 
-  return <AnimatedSequencePage />;
+  return <AnimatedSequencePage locale={locale} />;
 }
 
 function SequenceLoading() {
@@ -189,9 +186,10 @@ function SequenceLoading() {
   );
 }
 
-function AnimatedSequencePage() {
+function AnimatedSequencePage({ locale }: { locale: Locale }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
+  const t = getTranslations(locale).homeSequence;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -294,7 +292,7 @@ function AnimatedSequencePage() {
     let guideAnchorFrame = 0;
 
     const measureHeroGuideAnchor = () => {
-      const anchor = root.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+      const anchor = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
       const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
 
       if (!anchor || !overlay) return guideAnchor;
@@ -344,7 +342,73 @@ function AnimatedSequencePage() {
       guideAnchorFrame = window.requestAnimationFrame(() => applyHeroGuideAnchor());
     };
 
-    const guideAnchorElement = root.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+    const parsePercent = (value: string, fallback: number) => {
+      const parsed = Number.parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    const parseRadiusPx = (value: string) => {
+      const parsed = Number.parseFloat(value);
+      if (!Number.isFinite(parsed)) return window.innerWidth * 0.146;
+      if (value.trim().endsWith("vw")) return window.innerWidth * (parsed / 100);
+      if (value.trim().endsWith("px")) return parsed;
+      return window.innerWidth * (parsed / 100);
+    };
+
+    const applyHeroGuidePortalEdges = () => {
+      applyHeroGuideAnchor();
+
+      const heroStageElement = root.querySelector<HTMLElement>("[data-sequence-hero]");
+      const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
+      const leftLine = root.querySelector<SVGLineElement>("[data-guide-left]");
+      const rightLine = root.querySelector<SVGLineElement>("[data-guide-right]");
+      if (!heroStageElement || !overlay || !leftLine || !rightLine) return;
+
+      const overlayRect = overlay.getBoundingClientRect();
+      if (overlayRect.width === 0 || overlayRect.height === 0) return;
+
+      const portalStyles = getComputedStyle(heroStageElement);
+      const centerX = parsePercent(portalStyles.getPropertyValue("--portal-x"), 55.9);
+      const centerY = parsePercent(portalStyles.getPropertyValue("--portal-y"), 54.6);
+      const radiusPx = parseRadiusPx(portalStyles.getPropertyValue("--portal-r"));
+      const anchorX = (guideAnchor.x / 100) * overlayRect.width;
+      const anchorY = (guideAnchor.y / 100) * overlayRect.height;
+      const circleX = (centerX / 100) * overlayRect.width;
+      const circleY = (centerY / 100) * overlayRect.height;
+      const dx = anchorX - circleX;
+      const dy = anchorY - circleY;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance <= radiusPx) return;
+
+      const baseAngle = Math.atan2(dy, dx);
+      const tangentAngle = Math.acos(radiusPx / distance);
+      const tangentA = {
+        x: circleX + radiusPx * Math.cos(baseAngle + tangentAngle),
+        y: circleY + radiusPx * Math.sin(baseAngle + tangentAngle)
+      };
+      const tangentB = {
+        x: circleX + radiusPx * Math.cos(baseAngle - tangentAngle),
+        y: circleY + radiusPx * Math.sin(baseAngle - tangentAngle)
+      };
+      const leftPixelPoint = tangentA.x < tangentB.x ? tangentA : tangentB;
+      const rightPixelPoint = tangentA.x < tangentB.x ? tangentB : tangentA;
+      const leftPoint = {
+        x: (leftPixelPoint.x / overlayRect.width) * 100,
+        y: (leftPixelPoint.y / overlayRect.height) * 100
+      };
+      const rightPoint = {
+        x: (rightPixelPoint.x / overlayRect.width) * 100,
+        y: (rightPixelPoint.y / overlayRect.height) * 100
+      };
+
+      leftLine.setAttribute("x2", String(leftPoint.x));
+      leftLine.setAttribute("y2", String(leftPoint.y));
+      rightLine.setAttribute("x2", String(rightPoint.x));
+      rightLine.setAttribute("y2", String(rightPoint.y));
+    };
+
+    const guideAnchorElement = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
     const guideAnchorObserver =
       typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleHeroGuideAnchor);
 
@@ -387,7 +451,10 @@ function AnimatedSequencePage() {
         ease: "sine.inOut"
       });
 
-      const heroTimeline = gsap.timeline({ defaults: { ease: "sine.inOut" } });
+      const heroTimeline = gsap.timeline({
+        defaults: { ease: "sine.inOut" },
+        onUpdate: applyHeroGuidePortalEdges
+      });
 
       heroTimeline
         .set(heroStage, { "--portal-x": "31.8%", "--portal-y": "54.6%", "--portal-r": "0.1vw" }, 0)
@@ -399,12 +466,8 @@ function AnimatedSequencePage() {
         .to(heroStage, { "--portal-r": "14.6vw", duration: 0.36, ease: "power2.out" }, 0.65)
         .call(resetHeroGuideArms, undefined, 0.73)
         .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.01, ease: "none" }, 0.74)
-        .to("[data-guide-left]", { attr: { x2: 25.4, y2: 30.1 }, duration: 1.01, ease: "power1.inOut" }, 0.74)
-        .to("[data-guide-right]", { attr: { x2: 54.9, y2: 47.5 }, duration: 1.01, ease: "power1.inOut" }, 0.74)
         .to(heroStage, { "--portal-x": "37%", "--portal-r": "14.6vw", duration: 1.1, ease: "power1.inOut" }, 0.65)
         .to(heroStage, { "--portal-x": "55.9%", "--portal-y": "54.6%", "--portal-r": "14.6vw", duration: 0.75, ease: "power1.inOut" }, 1.75)
-        .to("[data-guide-left]", { attr: { x2: 39.2, y2: 35.3 }, duration: 0.75, ease: "power1.inOut" }, 1.75)
-        .to("[data-guide-right]", { attr: { x2: 66.8, y2: 34 }, duration: 0.75, ease: "power1.inOut" }, 1.75)
         .to(heroStage, { "--portal-r": "33.6vw", duration: 0.6, ease: "power2.inOut" }, 2.5)
         .to("[data-guide-arm]", { autoAlpha: 0, duration: 0.35, ease: "sine.out" }, 2.78)
         .to("[data-portal-image]", { scale: 1.05, xPercent: -1.8, duration: 4.5, ease: "sine.inOut" }, 0)
@@ -480,20 +543,19 @@ function AnimatedSequencePage() {
     };
   }, [reducedMotion]);
 
-  const tickerText = useMemo(() => [...tickerItems, ...tickerItems].join("    "), []);
+  const tickerText = useMemo(() => [...t.tickerItems, ...t.tickerItems].join("    "), [t.tickerItems]);
 
   return (
     <main ref={rootRef} className="sequence-page overflow-hidden bg-[#eceff1] text-[#243646]">
-      <HeroSequence tickerText={tickerText} />
-      <EditorialStories />
-      <DarkFeature />
-      <ClosingExhibitionBand />
-      <SiteFooter />
+      <HeroSequence tickerText={tickerText} copy={t} />
+      <EditorialStories copy={t} />
+      <DarkFeature copy={t} />
+      <ClosingExhibitionBand copy={t} />
     </main>
   );
 }
 
-function HeroSequence({ tickerText }: { tickerText: string }) {
+function HeroSequence({ tickerText, copy }: { tickerText: string; copy: SequenceCopy }) {
   const portalStyle = {
     "--portal-x": "31.8%",
     "--portal-y": "54.6%",
@@ -501,13 +563,13 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
   } as CSSProperties;
 
   return (
-    <section data-sequence-hero style={portalStyle} className="relative min-h-screen overflow-hidden bg-[#243646] text-[#d3d7da]">
+    <section id="tickets" data-sequence-hero style={portalStyle} className="relative min-h-screen overflow-hidden bg-[#243646] text-[#d3d7da]">
       <img src={assets.hero} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40 saturate-[0.8]" />
       <div data-portal className="absolute inset-0 overflow-hidden">
         <img
           data-portal-image
           src={assets.hero}
-          alt="Visitor painting a Dubai Free Port exhibition mural"
+          alt={copy.heroImageAlt}
           className="h-full w-full object-cover"
         />
       </div>
@@ -517,8 +579,7 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
         <div className="absolute inset-0 bg-[#243646]/50" />
       </div>
 
-      <HeroHeader />
-      <SocialRail />
+      <SocialRail copy={copy} />
 
       <div data-left-marker className="absolute left-[4.8vw] top-[20vh] z-20 hidden size-[88px] md:block">
         <span data-marker-target className="absolute left-0 top-0 size-[72px] will-change-transform">
@@ -532,23 +593,23 @@ function HeroSequence({ tickerText }: { tickerText: string }) {
 
       <HeroGuideOverlay />
 
-      <img src={assets.verticalLogo} alt="Al Fahidi Fort" className="absolute right-4 top-[18vh] z-20 h-24 w-auto opacity-80 md:right-[2.5vw] md:top-[16vh] md:h-36 md:opacity-90" />
+      <img src={assets.verticalLogo} alt="" className="absolute right-4 top-[18vh] z-20 h-24 w-auto opacity-80 md:right-[2.5vw] md:top-[16vh] md:h-36 md:opacity-90" />
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
-      <div className="absolute bottom-[11vh] left-5 right-5 z-20 max-w-[620px] text-white md:left-[6vw] md:right-auto">
+      <div className="absolute left-5 right-5 top-[28vh] z-20 max-w-[620px] text-white md:left-[6vw] md:right-auto md:top-[27vh]">
         <p data-hero-copy className="text-base font-semibold opacity-0 md:text-xl">
-          Exhibition until <strong>29 JAN</strong>
+          {copy.heroEyebrow} <strong>{copy.heroDate}</strong>
         </p>
         <p data-hero-copy className="mt-2 max-w-[520px] text-sm font-semibold leading-snug opacity-0 md:text-lg">
-          Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam.
+          {copy.heroDescription}
         </p>
         <div data-hero-copy className="mt-4 flex flex-wrap items-end gap-5 opacity-0">
           <h1 className="font-display text-[clamp(2.6rem,15vw,6.4rem)] leading-none text-white/85 [-webkit-text-stroke:1px_rgba(255,255,255,0.7)]">
-            Dubai Free Port
+            {copy.heroTitle}
           </h1>
           <Link href="#explore" className="mb-1 rounded-full border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-[#243646] md:mb-2 md:px-5 md:text-base">
-            Learn more
+            {copy.learnMore}
           </Link>
         </div>
       </div>
@@ -714,10 +775,9 @@ function HeroHeader() {
 
   const navLinks = [
     { href: "#experience", label: "Experience" },
-    { href: "#shop", label: "Shop" },
     { href: "#whats-on", label: "What's on" },
-    { href: "#visit", label: "Visit" },
-    { href: "#explore", label: "Explore" }
+    { href: "#faq", label: "FAQ" },
+    { href: "#contact-us", label: "Contact Us" }
   ];
 
   return (
@@ -739,11 +799,10 @@ function HeroHeader() {
           <Search size={20} aria-hidden="true" />
         </span>
         <Link href="#experience">Experience</Link>
-        <Link href="#shop">Shop</Link>
          <AlFahidiFortEmblem isScrolled={isScrolled} />
         <Link href="#whats-on">What's on</Link>
-        <Link href="#visit">Visit</Link>
-        <Link href="#explore" className="underline underline-offset-4">Explore</Link>
+        <Link href="#faq">FAQ</Link>
+        <Link href="#contact-us" className="underline underline-offset-4">Contact Us</Link>
       </nav>
 
       <div className="hidden min-w-[clamp(160px,18vw,300px)] text-right font-black leading-none tracking-normal text-[#d3d7da] md:block">
@@ -787,32 +846,43 @@ function HeroHeader() {
   );
 }
 
-function SocialRail() {
+function SocialRail({ copy }: { copy: SequenceCopy }) {
   return (
-    <aside className="absolute bottom-[24vh] left-3 top-[34vh] z-20 hidden w-10 flex-col items-center justify-between text-[#d3d7da] md:flex">
-      <p className="rotate-[-90deg] whitespace-nowrap text-lg font-semibold">@alfahidifort</p>
+    <aside className="absolute left-3 top-[22vh] z-20 hidden h-[44vh] w-10 flex-col items-center justify-between text-[#d3d7da] md:flex">
+      <p className="rotate-[-90deg] whitespace-nowrap text-lg font-semibold">{copy.socialHandle}</p>
       <div className="grid -translate-y-4 gap-3">
         <Instagram size={20} aria-label="Instagram" />
         <Facebook size={20} aria-label="Facebook" />
         <Twitter size={20} aria-label="Twitter" />
       </div>
-      <p className="rotate-[-90deg] whitespace-nowrap text-lg font-semibold">Find us on social media</p>
+      <p className="rotate-[-90deg] whitespace-nowrap text-lg font-semibold">{copy.socialLabel}</p>
     </aside>
   );
 }
 
-function EditorialStories() {
+function EditorialStories({ copy }: { copy: SequenceCopy }) {
+  const storyImages = [
+    { image: assets.origins, variant: "circle" as const },
+    { image: assets.fishing, variant: "circle" as const },
+    { image: assets.architecture, variant: "circle" as const }
+  ];
+  const stories = copy.secondaryStories.map((story, index) => ({
+    ...story,
+    image: storyImages[index]?.image ?? assets.origins,
+    variant: storyImages[index]?.variant ?? ("circle" as const)
+  }));
+
   return (
     <section id="explore" className="bg-[#fbfbfb] px-5 py-8 md:px-9 md:py-14">
       <div className="mx-auto grid max-w-[1368px] gap-10">
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[0.74fr_1.52fr] md:gap-7">
-          <FeaturedCeremonialCard />
-          <WideHistoryCard />
+          <FeaturedCeremonialCard copy={copy} />
+          <WideHistoryCard copy={copy} />
         </div>
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {secondaryStories.map((story) => (
-            <StoryArticle key={story.title} story={story} />
+          {stories.map((story) => (
+            <StoryArticle key={story.title} story={story} learnMore={copy.learnMore} />
           ))}
         </div>
       </div>
@@ -820,48 +890,48 @@ function EditorialStories() {
   );
 }
 
-function FeaturedCeremonialCard() {
+function FeaturedCeremonialCard({ copy }: { copy: SequenceCopy }) {
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
       <div data-marker-zone data-pop-image data-push-pop className="relative aspect-square overflow-hidden bg-white">
         <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(155deg,transparent_0,transparent_5px,rgba(36,54,70,0.18)_6px,transparent_7px)]" />
         <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
-        <img src={assets.guidedObject} alt="Ceremonial exhibition object" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
+        <img src={assets.guidedObject} alt="" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
       </div>
       <div className="grid gap-1">
-        <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">Power of ceremonials</h2>
-        <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">Exhibition until 29 JAN</p>
+        <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.ceremonialTitle}</h2>
+        <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.exhibitionUntil29}</p>
         <p className="max-w-[360px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">
-          Explore ceremonial objects and the stories of authority, identity and public life that surround them.
+          {copy.ceremonialDescription}
         </p>
         <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
-          Learn more
+          {copy.learnMore}
         </Link>
       </div>
     </article>
   );
 }
 
-function WideHistoryCard() {
+function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
       <div data-marker-zone className="relative">
         <div data-pop-image data-push-pop className="aspect-[1.95/1] overflow-hidden rounded-[999px] bg-white">
-          <img src={assets.fort} alt="Historic Al Fahidi Fort exhibition installation" className="h-full w-full object-cover grayscale" />
+          <img src={assets.fort} alt="" className="h-full w-full object-cover grayscale" />
         </div>
         <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-24" />
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[0.92fr_1.08fr] md:gap-5">
         <div>
-          <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">A place where history meets future</h2>
-          <p className="mt-1 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">Exhibition until 29 JAN</p>
+          <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.historyTitle}</h2>
+          <p className="mt-1 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.exhibitionUntil29}</p>
         </div>
         <div className="grid content-start gap-3">
           <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">
-            Discover the fort through archival views and the evolving urban fabric that grew around it.
+            {copy.historyDescription}
           </p>
           <Link href="#visit" className="w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
-            Learn more
+            {copy.learnMore}
           </Link>
         </div>
       </div>
@@ -869,7 +939,7 @@ function WideHistoryCard() {
   );
 }
 
-function StoryArticle({ story }: { story: StoryCard }) {
+function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: string }) {
   const maskClass =
     story.variant === "wide"
       ? "aspect-[1.95/1] rounded-[999px]"
@@ -891,42 +961,42 @@ function StoryArticle({ story }: { story: StoryCard }) {
         <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{story.eyebrow}</p>
         <p className="max-w-[430px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{story.description}</p>
         <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
-          Learn more
+          {learnMore}
         </Link>
       </div>
     </article>
   );
 }
 
-function DarkFeature() {
+function DarkFeature({ copy }: { copy: SequenceCopy }) {
   return (
     <section data-dark-feature id="visit" className="relative overflow-hidden bg-[#243646] text-[#d3d7da]">
       <div className="grid gap-10 px-5 py-12 md:hidden">
         <article className="grid gap-5">
-          <div className="w-max rounded-full border border-[#d3d7da] px-4 py-1 text-lg">Exhibition</div>
+          <div className="w-max rounded-full border border-[#d3d7da] px-4 py-1 text-lg">{copy.exhibition}</div>
           <div data-feature-visual className="relative aspect-square w-full max-w-[360px] justify-self-center">
             <div className="absolute inset-0 rounded-full bg-[#66727e]" />
-            <img src={assets.guidedObject} alt="Ceremonial exhibition object" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
+            <img src={assets.guidedObject} alt="" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
           </div>
           <div>
-            <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">Power of ceremonials</h2>
-            <p className="mt-2 text-base font-semibold">Exhibition until 29 JAN</p>
+            <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.ceremonialTitle}</h2>
+            <p className="mt-2 text-base font-semibold">{copy.exhibitionUntil29}</p>
             <p className="mt-4 max-w-[420px] text-base leading-snug">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet.
+              {copy.darkDescription}
             </p>
           </div>
         </article>
 
         <article className="grid gap-5">
           <div data-feature-visual data-conservation className="aspect-[1/1.05] w-full overflow-hidden rounded-t-full">
-            <img src={assets.conservation} alt="Museum conservation care" className="h-full w-full object-cover grayscale" />
+            <img src={assets.conservation} alt="" className="h-full w-full object-cover grayscale" />
           </div>
           <div>
-            <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">Conservation and care</h3>
-            <p className="mt-2 text-base font-semibold">Exhibition until 29 JAN</p>
+            <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.conservationTitle}</h3>
+            <p className="mt-2 text-base font-semibold">{copy.exhibitionUntil29}</p>
           </div>
           <Link href="#guided-tour" className="inline-flex h-11 w-max items-center justify-center rounded-full border border-[#d3d7da] px-5 text-lg transition hover:bg-white hover:text-[#243646]">
-            Guide Tour
+            {copy.guideTour}
           </Link>
         </article>
       </div>
@@ -935,8 +1005,8 @@ function DarkFeature() {
         <svg className="pointer-events-none absolute inset-0 z-10 size-full text-[#d3d7da]" viewBox="0 0 1440 860" preserveAspectRatio="none" aria-hidden="true">
           <line data-artifact-line x1="208" y1="31" x2="558" y2="245" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
           <line data-artifact-line x1="36" y1="56" x2="78" y2="522" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
-          <line data-conservation-line x1="816" y1="779" x2="960" y2="294" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
-          <line data-conservation-line x1="986" y1="808" x2="1404" y2="537" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+          <line data-conservation-line x1="818" y1="798" x2="960" y2="294" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+          <line data-conservation-line x1="1010" y1="820" x2="1404" y2="537" stroke="currentColor" pathLength="1" strokeDasharray="1" strokeDashoffset="1" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
         </svg>
 
         <div data-feature-visual className="absolute left-[5.9%] top-[22.56%] aspect-square w-[39.86%]">
@@ -944,35 +1014,35 @@ function DarkFeature() {
           <img
             data-artifact
             src={assets.guidedObject}
-            alt="Ceremonial exhibition object"
+            alt=""
             className="absolute left-[10.45%] top-[-3.4%] h-[108.9%] w-[79.1%] object-cover"
           />
         </div>
 
         <div className="absolute left-[5.9%] top-[8.72%] z-20 w-[15.97%] font-display text-[#d3d7da]">
-          <h2 className="text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">Power of ceremonials</h2>
+          <h2 className="text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{copy.ceremonialTitle}</h2>
           <p className="mt-1 whitespace-nowrap text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
-            <span className="text-white">Exhibition until </span>
-            <span>29 JAN</span>
+            <span className="text-white">{copy.heroEyebrow} </span>
+            <span>{copy.heroDate}</span>
           </p>
           <p className="mt-[6px] text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
-            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+            {copy.darkDescription}
           </p>
         </div>
 
         <div className="absolute left-[2.5%] top-[2.79%] z-20 flex w-[11.53%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%]">
-          <span className="font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da]">Exhibition</span>
+          <span className="font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da]">{copy.exhibition}</span>
         </div>
 
         <div data-feature-visual data-conservation className="absolute left-[66.04%] top-[8.95%] h-[52.91%] w-[31.46%] overflow-hidden rounded-t-full">
-          <img src={assets.conservation} alt="Museum conservation care" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
+          <img src={assets.conservation} alt="" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
         </div>
 
         <div className="absolute left-[65.76%] top-[64.19%] z-20 w-[18.19%] font-display text-[#d3d7da]">
-          <h3 className="whitespace-pre-wrap text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{`Conservation \nand care`}</h3>
+          <h3 className="whitespace-pre-wrap text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{copy.conservationTitle}</h3>
           <p className="whitespace-nowrap text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
-            <span className="text-white">Exhibition until </span>
-            <span>29 JAN</span>
+            <span className="text-white">{copy.heroEyebrow} </span>
+            <span>{copy.heroDate}</span>
           </p>
         </div>
 
@@ -980,7 +1050,7 @@ function DarkFeature() {
           href="#guided-tour"
           className="absolute left-[56.67%] top-[91.4%] z-20 flex w-[13.61%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%] font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da] transition hover:bg-white hover:text-[#243646]"
         >
-          Guide Tour
+          {copy.guideTour}
         </Link>
       </div>
     </section>
@@ -988,28 +1058,28 @@ function DarkFeature() {
 
 }
 
-function ClosingExhibitionBand() {
+function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
   return (
     <section id="guided-tour" className="bg-[#e9ebec] px-5 pb-10 pt-6 md:px-9 md:pb-16 md:pt-8">
       <div className="mx-auto grid max-w-[1368px] grid-cols-1 gap-10 md:grid-cols-[1.25fr_0.75fr] md:gap-12">
         <article className="grid gap-6">
           <div data-marker-zone className="relative">
             <div data-pop-image className="relative aspect-[1.95/1] overflow-hidden rounded-full bg-transparent">
-              <img src={assets.trade} alt="Historic exhibition source material" className="absolute left-1/2 top-1/2 h-[118%] w-[118%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover object-center grayscale" />
+              <img src={assets.trade} alt="" className="absolute left-1/2 top-1/2 h-[118%] w-[118%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover object-center grayscale" />
             </div>
             <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.95fr_1.05fr] md:gap-6">
             <div>
-              <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">Back to the source</h2>
-              <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">Exhibition until 29 JAN</p>
+              <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.sourceTitle}</h2>
+              <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">{copy.exhibitionUntil29}</p>
             </div>
             <div className="grid gap-4">
               <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">
-                Source material, archival traces and object studies connect the fort story to daily life, trade, craft and conservation.
+                {copy.sourceDescription}
               </p>
               <Link href="#explore" className="inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
-                Learn more
+                {copy.learnMore}
               </Link>
             </div>
           </div>
@@ -1018,18 +1088,18 @@ function ClosingExhibitionBand() {
         <article className="grid content-start gap-6">
           <div data-marker-zone className="relative">
             <div data-pop-image className="aspect-square overflow-hidden rounded-full bg-white">
-              <img src={assets.ceremonialStone} alt="Ceremonial exhibition detail" className="h-full w-full object-cover" />
+              <img src={assets.ceremonialStone} alt="" className="h-full w-full object-cover" />
             </div>
             <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div>
-            <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">Power of ceremonials</h2>
-            <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">Exhibition until 29 JAN</p>
+            <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.ceremonialTitle}</h2>
+            <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">{copy.exhibitionUntil29}</p>
             <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">
-              Objects and rituals reveal the symbols, materials and gestures behind public life.
+              {copy.ceremonialShortDescription}
             </p>
             <Link href="#visit" className="mt-5 inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
-              Learn more
+              {copy.learnMore}
             </Link>
           </div>
         </article>

@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/content/site-content";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: Locale }> }) {
-  await params;
+  const { locale } = await params;
 
   const staticFallback = (
     <main className="w-full overflow-x-auto bg-white">
@@ -17,7 +17,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
 
   return (
     <>
-      <HomeSequenceExperience fallback={staticFallback} />
+      <HomeSequenceExperience fallback={staticFallback} locale={locale} />
     </>
   );
 }
