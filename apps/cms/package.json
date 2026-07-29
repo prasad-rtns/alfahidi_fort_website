@@ -8,7 +8,6 @@
     "build": "next build",
     "start": "next start -p 3001",
     "generate:types": "payload generate:types",
-    "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -16,18 +15,16 @@
     "@payloadcms/next": "^3.49.0",
     "@payloadcms/richtext-lexical": "^3.49.0",
     "cross-env": "^7.0.3",
-    "next": "15.4.11",
+    "next": "^16.2.12",
     "payload": "^3.49.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "sharp": "^0.34.3"
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@types/node": "^22.17.2",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "eslint": "^9.33.0",
-    "eslint-config-next": "15.4.11",
     "typescript": "^5.9.2"
   }
 }

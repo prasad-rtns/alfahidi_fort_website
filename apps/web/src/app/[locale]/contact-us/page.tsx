@@ -55,7 +55,7 @@ export default async function ContactUsPage({ params }: { params: Promise<{ loca
 
             <div className="grid gap-7">
               {t.details.map((item, index) => {
-                const Icon = contactIcons[index] ?? MapPin;
+                const Icon = contactIcons[index]!;
 
                 return (
                   <div key={item.label} className="flex gap-4">
