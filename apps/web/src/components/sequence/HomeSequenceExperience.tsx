@@ -3,18 +3,10 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
-import { gsap, registerGsap, ScrollTrigger } from "@/animations/gsap.config";
 import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
-import { getHomeSequence } from "@/lib/home-sequence-service";
 import { getTranslations, type HomeSequenceTranslation } from "@/lib/i18n/translations";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
-import type { HomeSequencePayload } from "@/types/home-sequence";
 import type { Locale } from "@/lib/content/site-content";
-
-type RequestState =
-  | { status: "loading"; data: null }
-  | { status: "ready"; data: HomeSequencePayload }
-  | { status: "error"; data: null };
 
 type StoryCard = {
   eyebrow: string;
@@ -93,36 +85,7 @@ const secondaryStories: StoryCard[] = [
   }
 ];
 
-export function HomeSequenceExperience({ fallback, locale }: { fallback: React.ReactNode; locale: Locale }) {
-  const [state, setState] = useState<RequestState>({ status: "loading", data: null });
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadSequence() {
-      try {
-        const data = await getHomeSequence(controller.signal);
-        setState({ status: "ready", data });
-      } catch {
-        if (!controller.signal.aborted) {
-          setState({ status: "error", data: null });
-        }
-      }
-    }
-
-    loadSequence();
-
-    return () => controller.abort();
-  }, []);
-
-  if (state.status === "loading") {
-    return <SequenceLoading />;
-  }
-
-  if (state.status === "error") {
-    return <>{fallback}</>;
-  }
-
+export function HomeSequenceExperience({ locale }: { locale: Locale }) {
   return <AnimatedSequencePage locale={locale} />;
 }
 
@@ -195,21 +158,31 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
     const root = rootRef.current;
     if (!root) return;
 
-    registerGsap();
+    let cancelled = false;
+    let cleanupAnimations: (() => void) | undefined;
+    let idleCallbackId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    if (window.location.hash) {
-      history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-    }
+    const startAnimations = async () => {
+      const { gsap, registerGsap, ScrollTrigger } = await import("@/animations/gsap.config");
 
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      if (cancelled) return;
 
-    if (reducedMotion) {
-      root.dataset.motion = "reduced";
-      ScrollTrigger.refresh();
-      return;
-    }
+      registerGsap();
 
-    root.dataset.motion = "ready";
+      if (window.location.hash) {
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      }
+
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
+      if (reducedMotion) {
+        root.dataset.motion = "reduced";
+        ScrollTrigger.refresh();
+        return;
+      }
+
+      root.dataset.motion = "ready";
 
     const markerObserver = new IntersectionObserver(
       (entries) => {
@@ -525,21 +498,39 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
       });
     }, root);
 
-    requestAnimationFrame(() => ScrollTrigger.refresh());
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+
+      cleanupAnimations = () => {
+        window.removeEventListener("scroll", refreshFeatureLines);
+        window.removeEventListener("resize", refreshFeatureLines);
+        window.removeEventListener("resize", scheduleHeroGuideAnchor);
+        window.cancelAnimationFrame(guideAnchorFrame);
+        guideAnchorObserver?.disconnect();
+        if (replayHeroIntroOnReturn) {
+          window.removeEventListener("scroll", replayHeroIntroOnReturn);
+        }
+        markerObserver.disconnect();
+        popImageObserver.disconnect();
+        featureLineObserver.disconnect();
+        context.revert();
+      };
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleCallbackId = window.requestIdleCallback(startAnimations, { timeout: 1500 });
+    } else {
+      timeoutId = globalThis.setTimeout(startAnimations, 350);
+    }
 
     return () => {
-      window.removeEventListener("scroll", refreshFeatureLines);
-      window.removeEventListener("resize", refreshFeatureLines);
-      window.removeEventListener("resize", scheduleHeroGuideAnchor);
-      window.cancelAnimationFrame(guideAnchorFrame);
-      guideAnchorObserver?.disconnect();
-      if (replayHeroIntroOnReturn) {
-        window.removeEventListener("scroll", replayHeroIntroOnReturn);
+      cancelled = true;
+      if (idleCallbackId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleCallbackId);
       }
-      markerObserver.disconnect();
-      popImageObserver.disconnect();
-      featureLineObserver.disconnect();
-      context.revert();
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
+      cleanupAnimations?.();
     };
   }, [reducedMotion]);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { AlFahidiEmblem, AlFahidiWordmark, GovernmentOfDubaiMark } from "@/components/chrome/brand-assets";
 import { getTranslations } from "@/lib/i18n/translations";
@@ -12,6 +12,7 @@ export function Header({ locale }: { locale: Locale }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const oppositeLocale = locale === "en" ? "ar" : "en";
   const homeHref = `/${locale}`;
   const [languageHref, setLanguageHref] = useState(`/${oppositeLocale}`);
@@ -21,7 +22,7 @@ export function Header({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     const updateLanguageHref = () => {
-      const currentPath = window.location.pathname || pathname || homeHref;
+      const currentPath = window.location.pathname;
       const localizedPath = currentPath.replace(new RegExp(`^/${locale}(?=/|$)`), `/${oppositeLocale}`);
       setLanguageHref(`${localizedPath}${window.location.search}${window.location.hash}`);
     };
@@ -49,10 +50,15 @@ export function Header({ locale }: { locale: Locale }) {
   }, []);
 
   const navLinks = [
-    { href: `${homeHref}#visit`, label: t.planYourVisit },
-    { href: `${homeHref}/faq`, label: t.faq },
-    { href: `${homeHref}/contact-us`, label: t.contactUs }
+    { href: `${homeHref}#visit`, label: t.planYourVisit, native: false },
+    { href: `${homeHref}/faq`, label: t.faq, native: true },
+    { href: `${homeHref}/contact-us`, label: t.contactUs, native: true }
   ];
+
+  useEffect(() => {
+    router.prefetch(`${homeHref}/faq`);
+    router.prefetch(`${homeHref}/contact-us`);
+  }, [homeHref, router]);
 
   return (
     <header
@@ -91,11 +97,17 @@ export function Header({ locale }: { locale: Locale }) {
 
         <div className="hidden min-w-0 items-end justify-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <nav className="flex items-center gap-[clamp(0.9rem,1.4vw,1.25rem)] self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={pathname === link.href ? "underline underline-offset-4" : undefined}>
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) =>
+              link.native ? (
+                <a key={link.href} href={link.href} className={pathname === link.href ? "underline underline-offset-4" : undefined}>
+                  {link.label}
+                </a>
+              ) : (
+                <Link key={link.href} href={link.href} className={pathname === link.href ? "underline underline-offset-4" : undefined}>
+                  {link.label}
+                </Link>
+              )
+            )}
           </nav>
           <Link href={homeHref} aria-label={t.fort} className="grid justify-items-end gap-1">
             <AlFahidiWordmark className={`h-auto text-[#d3d7da] transition-[width] duration-300 ${isScrolled ? "w-[clamp(160px,14vw,210px)]" : "w-[clamp(180px,16.4vw,235px)]"}`} />
@@ -134,11 +146,17 @@ export function Header({ locale }: { locale: Locale }) {
           <Link href={`${homeHref}#explore`} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
             {t.experience}
           </Link>
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) =>
+            link.native ? (
+              <a key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
+                {link.label}
+              </Link>
+            )
+          )}
           <div className="flex items-center justify-between py-2 text-base">
             <Link href={languageHref} onClick={() => setIsMenuOpen(false)}>
               {t.language}
