@@ -26,7 +26,7 @@ export const en = {
     contactTel: "Contact Us Tel. 80033222"
   },
   homeSequence: {
-    tickerItems: ["DUBAI FREE PORT EXHIBITION UNTIL 29TH JANUARY", "OPEN TODAY: 10:30 AM - 6 PM", "MORE EVENTS ON SUNDAY", "DUBAI FREE PORT"],
+    tickerItems: ["DUBAI FREE PORT EXHIBITION UNTIL 29TH AUGUST", "OPEN TODAY: 10:30 AM - 6 PM", "MORE EVENTS ON SUNDAY", "DUBAI FREE PORT"],
     heroImageAlt: "Visitor painting a Dubai Free Port exhibition mural",
     heroEyebrow: "Exhibition until",
     heroDate: "29 JAN",

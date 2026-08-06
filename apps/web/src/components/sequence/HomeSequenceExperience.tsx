@@ -942,7 +942,7 @@ function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: strin
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
       <div data-marker-zone className="relative">
-        <div className={`overflow-hidden bg-[#dde2e3] ${maskClass}`}>
+        <div data-pop-image data-push-pop className={`overflow-hidden bg-[#dde2e3] ${maskClass}`}>
           <img src={story.image} alt={story.imageAlt} className={`h-full w-full object-cover ${imagePositionClass} transition duration-700 hover:scale-105`} />
         </div>
         <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-20" />
