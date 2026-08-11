@@ -588,18 +588,18 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
-      <div className="absolute left-5 right-5 top-[28vh] z-20 max-w-[620px] text-white md:left-[6vw] md:right-auto md:top-[27vh]">
-        <p data-hero-copy className="text-base font-semibold opacity-0 md:text-xl">
-          {copy.heroEyebrow} <strong>{copy.heroDate}</strong>
+      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] font-['29LT_Azer',var(--font-body),Arial,sans-serif] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[68vh] md:w-[560px]">
+        <p data-hero-copy className="text-[14px] leading-normal opacity-0 md:text-[16px]">
+          <span>{copy.heroEyebrow}</span> <strong className="font-semibold text-white">{copy.heroDate}</strong>
         </p>
-        <p data-hero-copy className="mt-2 max-w-[520px] text-sm font-semibold leading-snug opacity-0 md:text-lg">
+        <p data-hero-copy className="mt-2 w-full max-w-[300px] text-[13px] leading-[1.45] opacity-0 [overflow-wrap:anywhere] md:max-w-[500px] md:text-[15px] md:leading-[1.45]">
           {copy.heroDescription}
         </p>
-        <div data-hero-copy className="mt-4 flex flex-wrap items-end gap-5 opacity-0">
-          <h1 className="font-display text-[clamp(2.6rem,15vw,6.4rem)] leading-none text-white/85 [-webkit-text-stroke:1px_rgba(255,255,255,0.7)]">
+        <div data-hero-copy className="mt-3 flex flex-col items-start gap-3 opacity-0 md:flex-row md:items-end md:gap-4">
+          <h1 className="whitespace-nowrap text-[clamp(1.55rem,6.4vw,3rem)] leading-none text-white/[0.04] [-webkit-text-stroke:1px_#d3d7da] md:text-[clamp(2rem,4.2vw,3rem)]">
             {copy.heroTitle}
           </h1>
-          <Link href="#explore" className="mb-1 rounded-full border border-white/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-[#243646] md:mb-2 md:px-5 md:text-base">
+          <Link href="#explore" className="mb-1 rounded-full border border-[#d3d7da] px-3 py-[6px] text-[14px] leading-none text-[#d3d7da] transition hover:bg-[#d3d7da] hover:text-[#243646] md:mb-[0.3rem] md:px-4 md:text-[13px]">
             {copy.learnMore}
           </Link>
         </div>
@@ -967,7 +967,7 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
           <div className="w-max rounded-full border border-[#d3d7da] px-4 py-1 text-lg">{copy.exhibition}</div>
           <div data-feature-visual className="relative aspect-square w-full max-w-[360px] justify-self-center">
             <div className="absolute inset-0 rounded-full bg-[#66727e]" />
-            <img src={assets.guidedObject} alt="" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
+            <img data-pop-image data-push-pop src={assets.guidedObject} alt="" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
           </div>
           <div>
             <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.ceremonialTitle}</h2>
@@ -980,7 +980,7 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
 
         <article className="grid gap-5">
           <div data-feature-visual data-conservation className="aspect-[1/1.05] w-full overflow-hidden rounded-t-full">
-            <img src={assets.conservation} alt="" className="h-full w-full object-cover grayscale" />
+            <img data-pop-image data-push-pop src={assets.conservation} alt="" className="h-full w-full object-cover grayscale" />
           </div>
           <div>
             <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.conservationTitle}</h3>
@@ -1004,6 +1004,8 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
           <div className="absolute inset-0 rounded-full bg-[#66727e]" />
           <img
             data-artifact
+            data-pop-image
+            data-push-pop
             src={assets.guidedObject}
             alt=""
             className="absolute left-[10.45%] top-[-3.4%] h-[108.9%] w-[79.1%] object-cover"
@@ -1026,7 +1028,7 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
         </div>
 
         <div data-feature-visual data-conservation className="absolute left-[66.04%] top-[8.95%] h-[52.91%] w-[31.46%] overflow-hidden rounded-t-full">
-          <img src={assets.conservation} alt="" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
+          <img data-pop-image data-push-pop src={assets.conservation} alt="" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
         </div>
 
         <div className="absolute left-[65.76%] top-[64.19%] z-20 w-[18.19%] font-display text-[#d3d7da]">
@@ -1056,7 +1058,7 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
         <article className="grid gap-6">
           <div data-marker-zone className="relative">
             <div data-pop-image className="relative aspect-[1.95/1] overflow-hidden rounded-full bg-transparent">
-              <img src={assets.trade} alt="" className="absolute left-1/2 top-1/2 h-[118%] w-[118%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover object-center grayscale" />
+              <img data-pop-image data-push-pop src={assets.trade} alt="" className="absolute left-[-9%] top-[-9%] h-[118%] w-[118%] max-w-none object-cover object-center grayscale" />
             </div>
             <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
@@ -1079,7 +1081,7 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
         <article className="grid content-start gap-6">
           <div data-marker-zone className="relative">
             <div data-pop-image className="aspect-square overflow-hidden rounded-full bg-white">
-              <img src={assets.ceremonialStone} alt="" className="h-full w-full object-cover" />
+              <img data-pop-image data-push-pop src={assets.ceremonialStone} alt="" className="h-full w-full object-cover" />
             </div>
             <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>

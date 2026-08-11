@@ -69,7 +69,7 @@ export function Header({ locale }: { locale: Locale }) {
       <div className="mx-auto flex max-w-[1368px] items-end justify-between gap-4">
         <div className="hidden min-w-0 items-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <Link href={homeHref} aria-label={t.government} className="relative -ml-3 self-center md:-ml-5">
-            <GovernmentOfDubaiMark className="h-[48px] w-[112.25px]" />
+            <GovernmentOfDubaiMark className="h-[30px] w-[94px]" />
           </Link>
           <Link href={`${homeHref}#tickets`} className="self-center rounded-full border border-current px-4 py-1.5 text-[clamp(1rem,1.35vw,1.625rem)] leading-none transition hover:bg-[#d3d7da] hover:text-[#243646]">
             {t.bookTickets}
@@ -110,19 +110,19 @@ export function Header({ locale }: { locale: Locale }) {
             )}
           </nav>
           <Link href={homeHref} aria-label={t.fort} className="grid justify-items-end gap-1">
-            <AlFahidiWordmark className={`h-auto text-[#d3d7da] transition-[width] duration-300 ${isScrolled ? "w-[clamp(160px,14vw,210px)]" : "w-[clamp(180px,16.4vw,235px)]"}`} />
-            <span className={`text-[clamp(1.05rem,1.35vw,1.45rem)] font-bold leading-none text-[#d3d7da] transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>
+            <AlFahidiWordmark className={`h-auto text-[#d3d7da] transition-[width] duration-300 ${isScrolled ? "w-[clamp(130px,11vw,170px)]" : "w-[clamp(145px,12.5vw,185px)]"}`} />
+            <span className={`text-[clamp(0.85rem,1.05vw,1.1rem)] font-bold leading-none text-[#d3d7da] transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>
               {t.fort}
             </span>
           </Link>
         </div>
 
         <Link href={homeHref} aria-label={t.government} className="relative -ml-2 lg:hidden">
-          <GovernmentOfDubaiMark className="h-10 w-[94px]" />
+          <GovernmentOfDubaiMark className="h-8 w-[55px]" />
         </Link>
 
         <Link href={homeHref} aria-label={t.fort} className="lg:hidden">
-          <AlFahidiWordmark className="h-auto w-[150px]" />
+          <AlFahidiWordmark className="h-auto w-[120px]" />
         </Link>
 
         <button
