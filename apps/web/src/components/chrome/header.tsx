@@ -17,7 +17,6 @@ export function Header({ locale }: { locale: Locale }) {
   const homeHref = `/${locale}`;
   const [languageHref, setLanguageHref] = useState(`/${oppositeLocale}`);
   const isHome = pathname === homeHref;
-  const showEmblem = isScrolled || isMenuOpen || !isHome;
   const t = getTranslations(locale).header;
 
   useEffect(() => {
@@ -62,10 +61,16 @@ export function Header({ locale }: { locale: Locale }) {
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-50 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:px-[2.7vw] md:py-4 ${
-        isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"
+      className={`fixed isolate left-0 right-0 top-0 z-50 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:px-[2.7vw] md:py-4 ${
+        isScrolled || isMenuOpen ? "shadow-[0_1px_0_rgba(255,255,255,0.18)]" : ""
       }`}
     >
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 -z-10 border-b border-white/10 backdrop-blur-md transition-colors duration-300 ${
+          isScrolled || isMenuOpen ? "bg-[#243646]/90" : "bg-[#243646]/32"
+        }`}
+      />
       <div className="mx-auto flex max-w-[1368px] items-end justify-between gap-4">
         <div className="hidden min-w-0 items-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <Link href={homeHref} aria-label={t.government} className="relative -ml-3 self-center md:-ml-5">
@@ -89,7 +94,9 @@ export function Header({ locale }: { locale: Locale }) {
         <Link
           href={homeHref}
           data-hero-guide-anchor
-          className={`hidden shrink-0 self-center transition-opacity duration-300 md:grid ${showEmblem ? "opacity-100" : "opacity-0"}`}
+          data-guide-anchor-x="88"
+          data-guide-anchor-y="42"
+          className="hidden shrink-0 self-center opacity-100 transition-opacity duration-300 md:grid"
           aria-label={t.home}
         >
           <AlFahidiEmblem className="h-[clamp(2.8rem,3.85vw,3.45rem)] w-[clamp(1.35rem,2.05vw,1.8rem)]" />

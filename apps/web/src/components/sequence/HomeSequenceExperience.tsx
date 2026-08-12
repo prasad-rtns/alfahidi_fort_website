@@ -36,8 +36,6 @@ type SequenceCopy = HomeSequenceTranslation;
 
 const HERO_GUIDE_FALLBACK_ANCHOR_X = 65.7;
 const HERO_GUIDE_FALLBACK_ANCHOR_Y = 7.35;
-const HERO_GUIDE_ICON_WIDTH = 2.65;
-const HERO_GUIDE_ICON_HEIGHT = 6.5;
 
 const primaryStories: StoryCard[] = [
   {
@@ -277,22 +275,19 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
         return guideAnchor;
       }
 
+      const anchorXPercent = Number.parseFloat(anchor.dataset.guideAnchorX ?? "50");
+      const anchorYPercent = Number.parseFloat(anchor.dataset.guideAnchorY ?? "50");
+      const anchorXRatio = Number.isFinite(anchorXPercent) ? anchorXPercent / 100 : 0.5;
+      const anchorYRatio = Number.isFinite(anchorYPercent) ? anchorYPercent / 100 : 0.5;
+
       return {
-        x: ((anchorRect.left + anchorRect.width / 2 - overlayRect.left) / overlayRect.width) * 100,
-        y: ((anchorRect.top + anchorRect.height / 2) / overlayRect.height) * 100
+        x: ((anchorRect.left + anchorRect.width * anchorXRatio - overlayRect.left) / overlayRect.width) * 100,
+        y: ((anchorRect.top + anchorRect.height * anchorYRatio) / overlayRect.height) * 100
       };
     };
 
     const applyHeroGuideAnchor = ({ resetArms = false } = {}) => {
       guideAnchor = measureHeroGuideAnchor();
-
-      const emblem = root.querySelector<SVGSVGElement>("[data-guide-emblem]");
-      const dot = root.querySelector<SVGCircleElement>("[data-guide-dot]");
-
-      emblem?.setAttribute("x", String(guideAnchor.x - HERO_GUIDE_ICON_WIDTH / 2));
-      emblem?.setAttribute("y", String(guideAnchor.y - HERO_GUIDE_ICON_HEIGHT / 2));
-      dot?.setAttribute("cx", String(guideAnchor.x));
-      dot?.setAttribute("cy", String(guideAnchor.y));
 
       root.querySelectorAll<SVGLineElement>("[data-guide-arm]").forEach((line) => {
         line.setAttribute("x1", String(guideAnchor.x));
@@ -588,7 +583,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
-      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] font-['29LT_Azer',var(--font-body),Arial,sans-serif] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[68vh] md:w-[560px]">
+      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] font-['29LT_Azer',var(--font-body),Arial,sans-serif] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[64vh] md:w-[560px]">
         <p data-hero-copy className="text-[14px] leading-normal opacity-0 md:text-[16px]">
           <span>{copy.heroEyebrow}</span> <strong className="font-semibold text-white">{copy.heroDate}</strong>
         </p>
@@ -623,28 +618,14 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 }
 
 function HeroGuideOverlay() {
-  const clipId = `${useId().replace(/:/g, "")}-hero-emblem`;
-
   return (
     <svg
       data-guide-overlay
-      className="pointer-events-none absolute inset-0 z-20 hidden size-full text-white/75 md:block"
+      className="pointer-events-none absolute inset-0 z-[60] hidden size-full text-white/75 md:block"
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <svg
-        data-guide-emblem
-        x={HERO_GUIDE_FALLBACK_ANCHOR_X - HERO_GUIDE_ICON_WIDTH / 2}
-        y={HERO_GUIDE_FALLBACK_ANCHOR_Y - HERO_GUIDE_ICON_HEIGHT / 2}
-        width={HERO_GUIDE_ICON_WIDTH}
-        height={HERO_GUIDE_ICON_HEIGHT}
-        viewBox="0 0 36 59"
-        preserveAspectRatio="none"
-        overflow="visible"
-      >
-        <FortEmblemPaths clipId={clipId} includeDot={false} />
-      </svg>
       <line
         data-guide-arm
         data-guide-left
@@ -670,7 +651,6 @@ function HeroGuideOverlay() {
         strokeWidth="1.15"
         vectorEffect="non-scaling-stroke"
       />
-      <circle data-guide-dot cx={HERO_GUIDE_FALLBACK_ANCHOR_X} cy={HERO_GUIDE_FALLBACK_ANCHOR_Y} r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
