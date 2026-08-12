@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 
-function isDomEvent(value: unknown): value is Event {
+let isInstalled = false;
+
+export function isDomEventRejection(value: unknown): value is Event {
   return (
     value instanceof Event ||
     (typeof value === "object" &&
@@ -13,25 +15,32 @@ function isDomEvent(value: unknown): value is Event {
   );
 }
 
+function handleUnhandledRejection(event: PromiseRejectionEvent) {
+  if (!isDomEventRejection(event.reason)) {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (process.env.NODE_ENV === "development") {
+    console.debug("Ignored DOM Event promise rejection", event.reason.type);
+  }
+}
+
+export function installBrowserEventRejectionGuard() {
+  if (typeof window === "undefined" || isInstalled) {
+    return;
+  }
+
+  window.addEventListener("unhandledrejection", handleUnhandledRejection);
+  isInstalled = true;
+}
+
+installBrowserEventRejectionGuard();
+
 export function BrowserEventRejectionGuard() {
   useEffect(() => {
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      if (!isDomEvent(event.reason)) {
-        return;
-      }
-
-      event.preventDefault();
-
-      if (process.env.NODE_ENV === "development") {
-        console.debug("Ignored DOM Event promise rejection", event.reason.type);
-      }
-    };
-
-    window.addEventListener("unhandledrejection", handleUnhandledRejection);
-
-    return () => {
-      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
-    };
+    installBrowserEventRejectionGuard();
   }, []);
 
   return null;

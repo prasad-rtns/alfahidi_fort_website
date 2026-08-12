@@ -206,6 +206,20 @@ svg {
   transform: translate3d(0, 0, 0) scale(1);
 }
 
+.sequence-page [data-marker-wipe] {
+  clip-path: inset(0 100% 100% 0);
+  transform: none;
+  transition:
+    clip-path 3.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 1.25s ease;
+  will-change: clip-path, opacity;
+}
+
+.sequence-page [data-marker-wipe][data-marker-visible="true"] {
+  clip-path: inset(0 0 0 0);
+  transform: none;
+}
+
 .sequence-page [data-push-pop][data-pop-visible="true"] {
   animation: editorial-image-settle 1.15s cubic-bezier(0.22, 1, 0.36, 1) 2.75s;
 }
@@ -253,6 +267,10 @@ svg {
 .sequence-page[data-motion="reduced"] [data-scroll-marker] {
   opacity: 1;
   transform: none;
+}
+
+.sequence-page[data-motion="reduced"] [data-marker-wipe] {
+  clip-path: inset(0 0 0 0);
 }
 
 .sequence-page[data-motion="reduced"] [data-guide-arm],

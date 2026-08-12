@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BrowserEventRejectionGuard } from "@/components/runtime/browser-event-rejection-guard";
+import { BrowserEventRejectionGuard, installBrowserEventRejectionGuard } from "@/components/runtime/browser-event-rejection-guard";
 
 function createRejectionEvent(reason: unknown) {
   const event = new Event("unhandledrejection", { cancelable: true }) as PromiseRejectionEvent;
@@ -55,11 +55,11 @@ describe("BrowserEventRejectionGuard", () => {
   });
 
   it("removes the global listener when unmounted", () => {
-    const removeListener = vi.spyOn(window, "removeEventListener");
-    const { unmount } = render(<BrowserEventRejectionGuard />);
+    const addListener = vi.spyOn(window, "addEventListener");
 
-    unmount();
+    render(<BrowserEventRejectionGuard />);
+    installBrowserEventRejectionGuard();
 
-    expect(removeListener).toHaveBeenCalledWith("unhandledrejection", expect.any(Function));
+    expect(addListener).not.toHaveBeenCalledWith("unhandledrejection", expect.any(Function));
   });
 });

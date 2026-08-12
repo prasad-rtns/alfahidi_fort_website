@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
 
 export function SmoothScrollProvider({ children }: { children: React.ReactNode }) {
@@ -29,10 +30,24 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       cleanup = () => scroll.destroy();
     };
 
+    const handleStartupError = (error: unknown) => {
+      if (cancelled || isDomEventRejection(error)) {
+        return;
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        console.error("Smooth scroll startup failed", error);
+      }
+    };
+
+    const startSmoothScrollSafely = () => {
+      void startSmoothScroll().catch(handleStartupError);
+    };
+
     if ("requestIdleCallback" in window) {
-      idleCallbackId = window.requestIdleCallback(startSmoothScroll, { timeout: 1500 });
+      idleCallbackId = window.requestIdleCallback(startSmoothScrollSafely, { timeout: 1500 });
     } else {
-      timeoutId = globalThis.setTimeout(startSmoothScroll, 350);
+      timeoutId = globalThis.setTimeout(startSmoothScrollSafely, 350);
     }
 
     return () => {

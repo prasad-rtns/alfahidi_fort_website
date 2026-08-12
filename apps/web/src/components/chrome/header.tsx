@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { AlFahidiEmblem, AlFahidiWordmark, GovernmentOfDubaiMark } from "@/components/chrome/brand-assets";
+import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
 import { getTranslations } from "@/lib/i18n/translations";
 import type { Locale } from "@/lib/content/site-content";
 
@@ -56,8 +57,18 @@ export function Header({ locale }: { locale: Locale }) {
   ];
 
   useEffect(() => {
-    router.prefetch(`${homeHref}/faq`);
-    router.prefetch(`${homeHref}/contact-us`);
+    const handlePrefetchError = (error: unknown) => {
+      if (isDomEventRejection(error)) {
+        return;
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        console.debug("Route prefetch failed", error);
+      }
+    };
+
+    void Promise.resolve(router.prefetch(`${homeHref}/faq`)).catch(handlePrefetchError);
+    void Promise.resolve(router.prefetch(`${homeHref}/contact-us`)).catch(handlePrefetchError);
   }, [homeHref, router]);
 
   return (

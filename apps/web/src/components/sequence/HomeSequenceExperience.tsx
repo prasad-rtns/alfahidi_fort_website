@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 
 import Link from "next/link";
 import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
 import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
+import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
 import { getTranslations, type HomeSequenceTranslation } from "@/lib/i18n/translations";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
 import type { Locale } from "@/lib/content/site-content";
@@ -516,10 +517,24 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
       };
     };
 
+    const handleStartupError = (error: unknown) => {
+      if (cancelled || isDomEventRejection(error)) {
+        return;
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        console.error("Home sequence animation startup failed", error);
+      }
+    };
+
+    const startAnimationsSafely = () => {
+      void startAnimations().catch(handleStartupError);
+    };
+
     if ("requestIdleCallback" in window) {
-      idleCallbackId = window.requestIdleCallback(startAnimations, { timeout: 1500 });
+      idleCallbackId = window.requestIdleCallback(startAnimationsSafely, { timeout: 1500 });
     } else {
-      timeoutId = globalThis.setTimeout(startAnimations, 350);
+      timeoutId = globalThis.setTimeout(startAnimationsSafely, 350);
     }
 
     return () => {
@@ -884,10 +899,12 @@ function EditorialStories({ copy }: { copy: SequenceCopy }) {
 function FeaturedCeremonialCard({ copy }: { copy: SequenceCopy }) {
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
-      <div data-marker-zone data-pop-image data-push-pop className="relative aspect-square overflow-hidden bg-white">
-        <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(155deg,transparent_0,transparent_5px,rgba(36,54,70,0.18)_6px,transparent_7px)]" />
-        <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
-        <img src={assets.guidedObject} alt="" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
+      <div data-marker-zone className="relative">
+        <div data-pop-image data-push-pop className="relative aspect-square overflow-hidden bg-white">
+          <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(155deg,transparent_0,transparent_5px,rgba(36,54,70,0.18)_6px,transparent_7px)]" />
+          <img src={assets.guidedObject} alt="" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
+        </div>
+        <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
       </div>
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.ceremonialTitle}</h2>
@@ -910,7 +927,7 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
         <div data-pop-image data-push-pop className="aspect-[1.95/1] overflow-hidden rounded-[999px] bg-white">
           <img src={assets.fort} alt="" className="h-full w-full object-cover grayscale" />
         </div>
-        <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-24" />
+        <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-24" />
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[0.92fr_1.08fr] md:gap-5">
         <div>
@@ -945,7 +962,7 @@ function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: strin
         <div data-pop-image data-push-pop className={`overflow-hidden bg-[#dde2e3] ${maskClass}`}>
           <img src={story.image} alt={story.imageAlt} className={`h-full w-full object-cover ${imagePositionClass} transition duration-700 hover:scale-105`} />
         </div>
-        <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-20" />
+        <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-20" />
       </div>
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.2rem,3.2vw,3.2rem)] leading-[0.98] text-black">{story.title}</h2>
@@ -1060,7 +1077,7 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
             <div data-pop-image className="relative aspect-[1.95/1] overflow-hidden rounded-full bg-transparent">
               <img data-pop-image data-push-pop src={assets.trade} alt="" className="absolute left-[-9%] top-[-9%] h-[118%] w-[118%] max-w-none object-cover object-center grayscale" />
             </div>
-            <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
+            <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.95fr_1.05fr] md:gap-6">
             <div>
@@ -1083,7 +1100,7 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
             <div data-pop-image className="aspect-square overflow-hidden rounded-full bg-white">
               <img data-pop-image data-push-pop src={assets.ceremonialStone} alt="" className="h-full w-full object-cover" />
             </div>
-            <img data-scroll-marker src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
+            <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div>
             <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.ceremonialTitle}</h2>
