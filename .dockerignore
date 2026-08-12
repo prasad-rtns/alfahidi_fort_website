@@ -6,6 +6,8 @@
 **/.turbo
 **/*.log
 .git
+apps/cms
+packages
 .env
 .env.*
 !.env.example

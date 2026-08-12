@@ -27,10 +27,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Payload/CMS generated files
-postgres-data/
-payload-generated-schema.graphql
-payload-types.ts
+# Removed CMS/generated leftovers
+apps/cms/
 
 # Local reference/source dumps not intended for GitHub
 ignore/

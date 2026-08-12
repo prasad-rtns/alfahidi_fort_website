@@ -1,2 +1,9 @@
-include:
-  - infra/docker-compose.yml
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    ports:
+      - "${WEB_PORT:-3111}:3111"

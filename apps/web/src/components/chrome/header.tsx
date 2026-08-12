@@ -96,7 +96,7 @@ export function Header({ locale }: { locale: Locale }) {
         </Link>
 
         <div className="hidden min-w-0 items-end justify-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
-          <nav className="flex items-center gap-[clamp(0.9rem,1.4vw,1.25rem)] self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
+          <nav className="mr-[clamp(1.8rem,4vw,4.75rem)] flex items-center gap-[clamp(0.9rem,1.4vw,1.25rem)] self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
             {navLinks.map((link) =>
               link.native ? (
                 <a key={link.href} href={link.href} className={pathname === link.href ? "underline underline-offset-4" : undefined}>

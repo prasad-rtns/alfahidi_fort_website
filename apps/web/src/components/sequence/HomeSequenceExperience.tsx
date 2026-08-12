@@ -415,9 +415,9 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
 
       gsap.to("[data-marker-target]", {
         keyframes: [
-          { x: 14, y: -12, duration: 0.9 },
-          { x: 24, y: 6, duration: 0.9 },
-          { x: 9, y: 16, duration: 0.8 },
+          { x: 24, y: -20, duration: 0.9 },
+          { x: 42, y: 10, duration: 0.9 },
+          { x: 16, y: 28, duration: 0.8 },
           { x: 0, y: 0, duration: 0.8 }
         ],
         repeat: -1,
@@ -588,7 +588,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
-      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] font-['29LT_Azer',var(--font-body),Arial,sans-serif] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[68vh] md:w-[560px]">
+      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] font-['29LT_Azer',var(--font-body),Arial,sans-serif] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[62vh] md:w-[560px]">
         <p data-hero-copy className="text-[14px] leading-normal opacity-0 md:text-[16px]">
           <span>{copy.heroEyebrow}</span> <strong className="font-semibold text-white">{copy.heroDate}</strong>
         </p>
