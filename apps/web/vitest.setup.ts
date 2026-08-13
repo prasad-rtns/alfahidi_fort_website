@@ -21,3 +21,17 @@ vi.mock("next/link", () => ({
       children
     )
 }));
+
+type MockImageProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> & {
+  src: string | { src: string };
+  fill?: boolean;
+  priority?: boolean;
+};
+
+vi.mock("next/image", () => ({
+  default: ({ src, fill: _fill, priority: _priority, ...props }: MockImageProps) =>
+    React.createElement("img", {
+      src: typeof src === "string" ? src : src.src,
+      ...props
+    })
+}));

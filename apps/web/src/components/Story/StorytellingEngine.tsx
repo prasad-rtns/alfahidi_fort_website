@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap, registerGsap } from "@/animations/gsap.config";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { publicAsset } from "@/lib/routing/public-asset";
 import type { StoryAnimationType, StoryScene } from "@/components/Story/types";
 
 const animationClass: Record<StoryAnimationType, string> = {
@@ -153,9 +154,9 @@ export function StorytellingEngine({ scenes }: { scenes: StoryScene[] }) {
               className={`absolute left-1/2 top-1/2 h-[min(62vw,560px)] w-[min(72vw,700px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-pearl shadow-2xl ${animationClass[scene.animationType]}`}
             >
               {scene.video ? (
-                <video src={scene.video} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                <video src={publicAsset(scene.video)} muted playsInline preload="metadata" className="h-full w-full object-cover" />
               ) : (
-                <img src={scene.image} alt="" className="h-full w-full object-cover" />
+                <img src={publicAsset(scene.image)} alt="" className="h-full w-full object-cover" />
               )}
 
               {index === orderedScenes.length - 1 && scene.galleryImages ? (
@@ -164,7 +165,7 @@ export function StorytellingEngine({ scenes }: { scenes: StoryScene[] }) {
                     <img
                       key={image}
                       data-gallery-image
-                      src={image}
+                      src={publicAsset(image)}
                       alt=""
                       className="aspect-square rounded-full border border-pearl/80 object-cover shadow-lg"
                     />

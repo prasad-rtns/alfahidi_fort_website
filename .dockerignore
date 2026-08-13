@@ -13,4 +13,5 @@ packages
 !.env.example
 npm-debug.log
 ignore
+deployment/.artifacts
 Al Fahidi Fort_Website-Animation.mp4

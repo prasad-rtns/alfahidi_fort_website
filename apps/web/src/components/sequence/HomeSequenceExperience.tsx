@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
 import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
 import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
 import { getTranslations, type HomeSequenceTranslation } from "@/lib/i18n/translations";
+import { publicAsset } from "@/lib/routing/public-asset";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
 import type { Locale } from "@/lib/content/site-content";
 
@@ -19,18 +21,17 @@ type StoryCard = {
 };
 
 const assets = {
-  hero: "/assets/home/8ab53a40f6f21db6e5a8469000a2cd38a9fe5cbe.png",
-  verticalLogo: "/assets/home/c835b8583dd9faa532e167e3eea5630c2f4231fe.png",
-  marker: "/assets/home/817cfed82c580c1797e98cd2899a66a237a596c0.png",
-  ceremonials: "/assets/home/ddf3929089901f919ccb5cec8bcef57269bad28d.png",
-  fort: "/assets/home/356eeb935f5a39de2e9ab67426a8bc8942bce0d9.png",
-  origins: "/assets/home/a54ffe563d6773bc2f60c942869ba6f6d13be927.png",
-  fishing: "/assets/home/a414256e0f2e38adbace65848e8d7ac41adebc32.png",
-  architecture: "/assets/home/48674090da258a61c791cd00ca04f0ab5eae5098.png",
-  trade: "/assets/home/d236e945a5044c14489b2e7ea53c5604cf70cc94.png",
-  conservation: "/assets/home/e9323ff8ffb7ccb4f690c77098e1e1820215ab23.png",
-  guidedObject: "/assets/home/ca9b0d43c0a9a3e9707c0ffbdcb128a1d40e4f45.png",
-  ceremonialStone: "/assets/home/c7d7122132398baf8c2664cd0d16250039849475.png"
+  hero: publicAsset("/assets/home/8ab53a40f6f21db6e5a8469000a2cd38a9fe5cbe.png"),
+  verticalLogo: publicAsset("/assets/home/c835b8583dd9faa532e167e3eea5630c2f4231fe.png"),
+  marker: publicAsset("/assets/home/817cfed82c580c1797e98cd2899a66a237a596c0.png"),
+  fort: publicAsset("/assets/home/356eeb935f5a39de2e9ab67426a8bc8942bce0d9.png"),
+  origins: publicAsset("/assets/home/a54ffe563d6773bc2f60c942869ba6f6d13be927.png"),
+  fishing: publicAsset("/assets/home/a414256e0f2e38adbace65848e8d7ac41adebc32.png"),
+  architecture: publicAsset("/assets/home/48674090da258a61c791cd00ca04f0ab5eae5098.png"),
+  trade: publicAsset("/assets/home/d236e945a5044c14489b2e7ea53c5604cf70cc94.png"),
+  conservation: publicAsset("/assets/home/e9323ff8ffb7ccb4f690c77098e1e1820215ab23.png"),
+  guidedObject: publicAsset("/assets/home/ca9b0d43c0a9a3e9707c0ffbdcb128a1d40e4f45.png"),
+  ceremonialStone: publicAsset("/assets/home/c7d7122132398baf8c2664cd0d16250039849475.png")
 };
 
 type SequenceCopy = HomeSequenceTranslation;
@@ -40,114 +41,8 @@ const HERO_GUIDE_FALLBACK_ANCHOR_Y = 7.35;
 const HERO_GUIDE_ICON_WIDTH = 2.65;
 const HERO_GUIDE_ICON_HEIGHT = 6.5;
 
-const primaryStories: StoryCard[] = [
-  {
-    eyebrow: "Exhibition until 28 JAN",
-    title: "Power of ceremonials",
-    description: "Explore ceremonial objects and the stories of authority, identity and public life that surround them.",
-    image: assets.ceremonials,
-    imageAlt: "Ceremonial object from the Al Fahidi Fort exhibition",
-    variant: "portrait"
-  },
-  {
-    eyebrow: "Exhibition until 29 JAN",
-    title: "A place where history meets future",
-    description: "Discover the fort through archival views and the evolving urban fabric that grew around it.",
-    image: assets.fort,
-    imageAlt: "Historic Al Fahidi Fort exhibition installation",
-    variant: "wide"
-  }
-];
-
-const secondaryStories: StoryCard[] = [
-  {
-    eyebrow: "Exhibition until 29 JAN",
-    title: "Origins and visions",
-    description: "Stories of people, trade and ideas that helped shape the place.",
-    image: assets.origins,
-    imageAlt: "Historic scene representing the origins of the district",
-    variant: "circle"
-  },
-  {
-    eyebrow: "Exhibition until 29 JAN",
-    title: "Dubai fishing village",
-    description: "A visual history of the settlement, its shoreline and its communities.",
-    image: assets.fishing,
-    imageAlt: "Dubai fishing village scene",
-    variant: "circle"
-  },
-  {
-    eyebrow: "Exhibition until 29 JAN",
-    title: "Vernacular architecture",
-    description: "Materials and building traditions adapted to climate, culture and daily life.",
-    image: assets.architecture,
-    imageAlt: "Traditional architectural material",
-    variant: "circle"
-  }
-];
-
 export function HomeSequenceExperience({ locale }: { locale: Locale }) {
   return <AnimatedSequencePage locale={locale} />;
-}
-
-function SequenceLoading() {
-  return (
-    <main className="sequence-loading relative min-h-screen overflow-hidden bg-[#253646] text-[#d3d7da]">
-      <img src={assets.hero} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45 saturate-[0.8]" />
-      <div className="absolute inset-0 bg-[#253646]/72" />
-
-      {/* <div data-loading-portal className="absolute overflow-hidden rounded-full bg-white/10 shadow-[0_0_28px_rgba(211,215,218,0.2)]">
-        <img src={assets.hero} alt="" className="h-full w-full object-cover" />
-      </div>
-
-      <svg
-        className="pointer-events-none absolute inset-0 size-full text-white/75"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <line
-          data-loading-guide
-          pathLength="1"
-          x1="48.95"
-          y1="7.35"
-          x2="25.9"
-          y2="33.5"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="1.15"
-          strokeDasharray="0.2 1.05"
-          vectorEffect="non-scaling-stroke"
-        />
-        <line
-          data-loading-guide
-          pathLength="1"
-          x1="48.95"
-          y1="7.35"
-          x2="43.1"
-          y2="39.2"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="1.15"
-          vectorEffect="non-scaling-stroke"
-        />
-        <circle cx="48.95" cy="7.35" r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
-        <GuideTopIcon />
-      </svg> */}
-
-      <div className="absolute left-[6vw] top-[24vh] hidden size-[72px] md:block">
-        <span className="absolute inset-0 rounded-full border border-white/55 bg-white/5 shadow-[0_0_18px_rgba(255,255,255,0.45)]" />
-        <span className="absolute inset-[-8px] rounded-full border border-white/15" />
-        <span className="absolute inset-[-3px] grid place-items-center">
-          <FloatingMarkerIcon />
-        </span>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 bg-[#eceff1] px-[2.6vw] py-4">
-        <div className="h-[3.25rem] overflow-hidden rounded-full bg-[#995d3e]" />
-      </div>
-    </main>
-  );
 }
 
 function AnimatedSequencePage({ locale }: { locale: Locale }) {
@@ -185,319 +80,373 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
 
       root.dataset.motion = "ready";
 
-    const markerObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          entry.target.querySelectorAll<HTMLElement>("[data-scroll-marker]").forEach((marker) => {
-            marker.dataset.markerVisible = entry.isIntersecting ? "true" : "false";
+      const markerObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            entry.target.querySelectorAll<HTMLElement>("[data-scroll-marker]").forEach((marker) => {
+              marker.dataset.markerVisible = entry.isIntersecting ? "true" : "false";
+            });
           });
-        });
-      },
-      {
-        root: null,
-        rootMargin: "-6% 0px -6% 0px",
-        threshold: 0.08
-      }
-    );
-
-    root.querySelectorAll<HTMLElement>("[data-marker-zone]").forEach((zone) => {
-      markerObserver.observe(zone);
-    });
-
-    const popImageObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          (entry.target as HTMLElement).dataset.popVisible = entry.isIntersecting ? "true" : "false";
-        });
-      },
-      {
-        root: null,
-        rootMargin: "0px 0px -10% 0px",
-        threshold: 0.06
-      }
-    );
-
-    root.querySelectorAll<HTMLElement>("[data-pop-image]").forEach((image) => {
-      popImageObserver.observe(image);
-    });
-
-    const featureLineObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const section = entry.target as HTMLElement;
-          const isVisible = entry.isIntersecting ? "true" : "false";
-          section.dataset.linesVisible = isVisible;
-          section.dataset.featureVisualsVisible = isVisible;
-        });
-      },
-      {
-        root: null,
-        rootMargin: "-18% 0px -18% 0px",
-        threshold: 0.18
-      }
-    );
-
-    const updateFeatureLineState = (section: HTMLElement) => {
-      const rect = section.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      const isVisible = rect.top < viewportHeight * 0.82 && rect.bottom > viewportHeight * 0.18 ? "true" : "false";
-      section.dataset.linesVisible = isVisible;
-      section.dataset.featureVisualsVisible = isVisible;
-    };
-
-    const featureLineSections = root.querySelectorAll<HTMLElement>("[data-dark-feature]");
-
-    featureLineSections.forEach((section) => {
-      updateFeatureLineState(section);
-      featureLineObserver.observe(section);
-    });
-
-    const refreshFeatureLines = () => {
-      featureLineSections.forEach(updateFeatureLineState);
-    };
-
-    window.addEventListener("scroll", refreshFeatureLines, { passive: true });
-    window.addEventListener("resize", refreshFeatureLines);
-
-    let guideAnchor = {
-      x: HERO_GUIDE_FALLBACK_ANCHOR_X,
-      y: HERO_GUIDE_FALLBACK_ANCHOR_Y
-    };
-    let guideAnchorFrame = 0;
-
-    const measureHeroGuideAnchor = () => {
-      const anchor = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
-      const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
-
-      if (!anchor || !overlay) return guideAnchor;
-
-      const anchorRect = anchor.getBoundingClientRect();
-      const overlayRect = overlay.getBoundingClientRect();
-
-      if (anchorRect.width === 0 || overlayRect.width === 0 || overlayRect.height === 0) {
-        return guideAnchor;
-      }
-
-      return {
-        x: ((anchorRect.left + anchorRect.width / 2 - overlayRect.left) / overlayRect.width) * 100,
-        y: ((anchorRect.top + anchorRect.height / 2) / overlayRect.height) * 100
-      };
-    };
-
-    const applyHeroGuideAnchor = ({ resetArms = false } = {}) => {
-      guideAnchor = measureHeroGuideAnchor();
-
-      const emblem = root.querySelector<SVGSVGElement>("[data-guide-emblem]");
-      const dot = root.querySelector<SVGCircleElement>("[data-guide-dot]");
-
-      emblem?.setAttribute("x", String(guideAnchor.x - HERO_GUIDE_ICON_WIDTH / 2));
-      emblem?.setAttribute("y", String(guideAnchor.y - HERO_GUIDE_ICON_HEIGHT / 2));
-      dot?.setAttribute("cx", String(guideAnchor.x));
-      dot?.setAttribute("cy", String(guideAnchor.y));
-
-      root.querySelectorAll<SVGLineElement>("[data-guide-arm]").forEach((line) => {
-        line.setAttribute("x1", String(guideAnchor.x));
-        line.setAttribute("y1", String(guideAnchor.y));
-
-        if (resetArms) {
-          line.setAttribute("x2", String(guideAnchor.x));
-          line.setAttribute("y2", String(guideAnchor.y));
+        },
+        {
+          root: null,
+          rootMargin: "-6% 0px -6% 0px",
+          threshold: 0.08
         }
+      );
+
+      root.querySelectorAll<HTMLElement>("[data-marker-zone]").forEach((zone) => {
+        markerObserver.observe(zone);
       });
-    };
 
-    const resetHeroGuideArms = () => {
-      applyHeroGuideAnchor({ resetArms: true });
-      gsap.set("[data-guide-arm]", { autoAlpha: 0 });
-    };
+      const popImageObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            (entry.target as HTMLElement).dataset.popVisible = entry.isIntersecting ? "true" : "false";
+          });
+        },
+        {
+          root: null,
+          rootMargin: "0px 0px -10% 0px",
+          threshold: 0.06
+        }
+      );
 
-    const scheduleHeroGuideAnchor = () => {
-      window.cancelAnimationFrame(guideAnchorFrame);
-      guideAnchorFrame = window.requestAnimationFrame(() => applyHeroGuideAnchor());
-    };
+      root.querySelectorAll<HTMLElement>("[data-pop-image]").forEach((image) => {
+        popImageObserver.observe(image);
+      });
 
-    const parsePercent = (value: string, fallback: number) => {
-      const parsed = Number.parseFloat(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
+      const featureLineObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const section = entry.target as HTMLElement;
+            const isVisible = entry.isIntersecting ? "true" : "false";
+            section.dataset.linesVisible = isVisible;
+            section.dataset.featureVisualsVisible = isVisible;
+          });
+        },
+        {
+          root: null,
+          rootMargin: "-18% 0px -18% 0px",
+          threshold: 0.18
+        }
+      );
 
-    const parseRadiusPx = (value: string) => {
-      const parsed = Number.parseFloat(value);
-      if (!Number.isFinite(parsed)) return window.innerWidth * 0.146;
-      if (value.trim().endsWith("vw")) return window.innerWidth * (parsed / 100);
-      if (value.trim().endsWith("px")) return parsed;
-      return window.innerWidth * (parsed / 100);
-    };
-
-    const applyHeroGuidePortalEdges = () => {
-      applyHeroGuideAnchor();
-
-      const heroStageElement = root.querySelector<HTMLElement>("[data-sequence-hero]");
-      const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
-      const leftLine = root.querySelector<SVGLineElement>("[data-guide-left]");
-      const rightLine = root.querySelector<SVGLineElement>("[data-guide-right]");
-      if (!heroStageElement || !overlay || !leftLine || !rightLine) return;
-
-      const overlayRect = overlay.getBoundingClientRect();
-      if (overlayRect.width === 0 || overlayRect.height === 0) return;
-
-      const portalStyles = getComputedStyle(heroStageElement);
-      const centerX = parsePercent(portalStyles.getPropertyValue("--portal-x"), 55.9);
-      const centerY = parsePercent(portalStyles.getPropertyValue("--portal-y"), 54.6);
-      const radiusPx = parseRadiusPx(portalStyles.getPropertyValue("--portal-r"));
-      const anchorX = (guideAnchor.x / 100) * overlayRect.width;
-      const anchorY = (guideAnchor.y / 100) * overlayRect.height;
-      const circleX = (centerX / 100) * overlayRect.width;
-      const circleY = (centerY / 100) * overlayRect.height;
-      const dx = anchorX - circleX;
-      const dy = anchorY - circleY;
-      const distance = Math.hypot(dx, dy);
-
-      if (distance <= radiusPx) return;
-
-      const baseAngle = Math.atan2(dy, dx);
-      const tangentAngle = Math.acos(radiusPx / distance);
-      const tangentA = {
-        x: circleX + radiusPx * Math.cos(baseAngle + tangentAngle),
-        y: circleY + radiusPx * Math.sin(baseAngle + tangentAngle)
-      };
-      const tangentB = {
-        x: circleX + radiusPx * Math.cos(baseAngle - tangentAngle),
-        y: circleY + radiusPx * Math.sin(baseAngle - tangentAngle)
-      };
-      const leftPixelPoint = tangentA.x < tangentB.x ? tangentA : tangentB;
-      const rightPixelPoint = tangentA.x < tangentB.x ? tangentB : tangentA;
-      const leftPoint = {
-        x: (leftPixelPoint.x / overlayRect.width) * 100,
-        y: (leftPixelPoint.y / overlayRect.height) * 100
-      };
-      const rightPoint = {
-        x: (rightPixelPoint.x / overlayRect.width) * 100,
-        y: (rightPixelPoint.y / overlayRect.height) * 100
+      const updateFeatureLineState = (section: HTMLElement) => {
+        const rect = section.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const isVisible = rect.top < viewportHeight * 0.82 && rect.bottom > viewportHeight * 0.18 ? "true" : "false";
+        section.dataset.linesVisible = isVisible;
+        section.dataset.featureVisualsVisible = isVisible;
       };
 
-      leftLine.setAttribute("x2", String(leftPoint.x));
-      leftLine.setAttribute("y2", String(leftPoint.y));
-      rightLine.setAttribute("x2", String(rightPoint.x));
-      rightLine.setAttribute("y2", String(rightPoint.y));
-    };
+      const featureLineSections = root.querySelectorAll<HTMLElement>("[data-dark-feature]");
 
-    const guideAnchorElement = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
-    const guideAnchorObserver =
-      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleHeroGuideAnchor);
-
-    if (guideAnchorElement) {
-      guideAnchorObserver?.observe(guideAnchorElement);
-    }
-
-    resetHeroGuideArms();
-    window.addEventListener("resize", scheduleHeroGuideAnchor);
-
-    let replayHeroIntroOnReturn: (() => void) | null = null;
-
-    const context = gsap.context(() => {
-      const heroStage = "[data-sequence-hero]";
-
-      gsap.to("[data-intro-fade]", {
-        autoAlpha: 0,
-        duration: 1.15,
-        delay: 0.15,
-        ease: "power2.out"
+      featureLineSections.forEach((section) => {
+        updateFeatureLineState(section);
+        featureLineObserver.observe(section);
       });
 
-      gsap.to("[data-marker-halo]", {
-        scale: 1.12,
-        autoAlpha: 0.72,
-        duration: 1.35,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut"
-      });
+      const refreshFeatureLines = () => {
+        featureLineSections.forEach(updateFeatureLineState);
+      };
 
-      gsap.to("[data-marker-target]", {
-        keyframes: [
-          { x: 24, y: -20, duration: 0.9 },
-          { x: 42, y: 10, duration: 0.9 },
-          { x: 16, y: 28, duration: 0.8 },
-          { x: 0, y: 0, duration: 0.8 }
-        ],
-        repeat: -1,
-        ease: "sine.inOut"
-      });
+      window.addEventListener("scroll", refreshFeatureLines, { passive: true });
+      window.addEventListener("resize", refreshFeatureLines);
 
-      const heroTimeline = gsap.timeline({
-        defaults: { ease: "sine.inOut" },
-        onUpdate: applyHeroGuidePortalEdges
-      });
+      let guideAnchor = {
+        x: HERO_GUIDE_FALLBACK_ANCHOR_X,
+        y: HERO_GUIDE_FALLBACK_ANCHOR_Y
+      };
+      let guideAnchorFrame = 0;
 
-      heroTimeline
-        .set(heroStage, { "--portal-x": "31.8%", "--portal-y": "54.6%", "--portal-r": "0.1vw" }, 0)
-        .set("[data-portal-image]", { scale: 1, xPercent: 0 }, 0)
-        .set("[data-dark-wash]", { autoAlpha: 1 }, 0)
-        .set("[data-hero-copy]", { autoAlpha: 0, y: 34 }, 0)
-        .call(resetHeroGuideArms, undefined, 0)
-        .set("[data-corner-mark] span", { scaleX: 0, scaleY: 0 }, 0)
-        .to(heroStage, { "--portal-r": "14.6vw", duration: 0.36, ease: "power2.out" }, 0.65)
-        .call(resetHeroGuideArms, undefined, 0.73)
-        .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.01, ease: "none" }, 0.74)
-        .to(heroStage, { "--portal-x": "37%", "--portal-r": "14.6vw", duration: 1.1, ease: "power1.inOut" }, 0.65)
-        .to(heroStage, { "--portal-x": "55.9%", "--portal-y": "54.6%", "--portal-r": "14.6vw", duration: 0.75, ease: "power1.inOut" }, 1.75)
-        .to(heroStage, { "--portal-r": "33.6vw", duration: 0.6, ease: "power2.inOut" }, 2.5)
-        .to("[data-guide-arm]", { autoAlpha: 0, duration: 0.35, ease: "sine.out" }, 2.78)
-        .to("[data-portal-image]", { scale: 1.05, xPercent: -1.8, duration: 4.5, ease: "sine.inOut" }, 0)
-        .to(heroStage, { "--portal-x": "62%", "--portal-y": "51%", "--portal-r": "96vw", duration: 1.15, ease: "power2.inOut" }, 3.1)
-        .to("[data-dark-wash]", { autoAlpha: 0, duration: 0.45, ease: "sine.out" }, 4.15)
-        .fromTo(
-          "[data-hero-copy]",
-          { autoAlpha: 0, y: 34 },
-          { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power2.out" },
-          4.15
-        )
-        .to("[data-corner-mark] span", { scaleX: 1, scaleY: 1, duration: 0.35, stagger: 0.04, ease: "sine.out" }, 4.15);
+      const measureHeroGuideAnchor = () => {
+        const anchor = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+        const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
 
-      let hasLeftHero = false;
-      let previousScrollY = window.scrollY;
+        if (!anchor || !overlay) return guideAnchor;
 
-      replayHeroIntroOnReturn = () => {
-        const currentScrollY = window.scrollY;
-        const isScrollingUp = currentScrollY < previousScrollY;
-        const replayLine = Math.max(180, window.innerHeight * 0.34);
+        const anchorRect = anchor.getBoundingClientRect();
+        const overlayRect = overlay.getBoundingClientRect();
 
-        if (currentScrollY > window.innerHeight * 0.9) {
-          hasLeftHero = true;
+        if (anchorRect.width === 0 || overlayRect.width === 0 || overlayRect.height === 0) {
+          return guideAnchor;
         }
 
-        if (hasLeftHero && isScrollingUp && currentScrollY < replayLine && !heroTimeline.isActive()) {
-          hasLeftHero = false;
-          resetHeroGuideArms();
-          heroTimeline.invalidate().restart(true, false);
-        }
-
-        previousScrollY = currentScrollY;
+        return {
+          x: ((anchorRect.left + anchorRect.width / 2 - overlayRect.left) / overlayRect.width) * 100,
+          y: ((anchorRect.top + anchorRect.height / 2) / overlayRect.height) * 100
+        };
       };
 
-      window.addEventListener("scroll", replayHeroIntroOnReturn, { passive: true });
+      const applyHeroGuideAnchor = ({ resetArms = false } = {}) => {
+        guideAnchor = measureHeroGuideAnchor();
 
-      gsap.utils.toArray<HTMLElement>("[data-reveal-card]").forEach((card, index) => {
-        gsap.fromTo(
-          card,
-          { autoAlpha: 0, y: 72, scale: 0.96 },
-          {
-            autoAlpha: 1,
-            y: 0,
-            scale: 1,
-            duration: 0.9,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 82%",
-              toggleActions: "play none none reverse"
-            },
-            delay: (index % 3) * 0.08
+        const emblem = root.querySelector<SVGSVGElement>("[data-guide-emblem]");
+        const dot = root.querySelector<SVGCircleElement>("[data-guide-dot]");
+
+        emblem?.setAttribute("x", String(guideAnchor.x - HERO_GUIDE_ICON_WIDTH / 2));
+        emblem?.setAttribute("y", String(guideAnchor.y - HERO_GUIDE_ICON_HEIGHT / 2));
+        dot?.setAttribute("cx", String(guideAnchor.x));
+        dot?.setAttribute("cy", String(guideAnchor.y));
+
+        root.querySelectorAll<SVGLineElement>("[data-guide-arm]").forEach((line) => {
+          line.setAttribute("x1", String(guideAnchor.x));
+          line.setAttribute("y1", String(guideAnchor.y));
+
+          if (resetArms) {
+            line.setAttribute("x2", String(guideAnchor.x));
+            line.setAttribute("y2", String(guideAnchor.y));
           }
-        );
-      });
-    }, root);
+        });
+      };
+
+      const resetHeroGuideArms = () => {
+        applyHeroGuideAnchor({ resetArms: true });
+        gsap.set("[data-guide-arm]", { autoAlpha: 0 });
+      };
+
+      const scheduleHeroGuideAnchor = () => {
+        window.cancelAnimationFrame(guideAnchorFrame);
+        guideAnchorFrame = window.requestAnimationFrame(() => applyHeroGuideAnchor());
+      };
+
+      const parsePercent = (value: string, fallback: number) => {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+      };
+
+      const parseRadiusPx = (value: string) => {
+        const parsed = Number.parseFloat(value);
+        if (!Number.isFinite(parsed)) return window.innerWidth * 0.146;
+        if (value.trim().endsWith("vw")) return window.innerWidth * (parsed / 100);
+        if (value.trim().endsWith("px")) return parsed;
+        return window.innerWidth * (parsed / 100);
+      };
+
+      const applyHeroGuidePortalEdges = () => {
+        applyHeroGuideAnchor();
+
+        const heroStageElement = root.querySelector<HTMLElement>("[data-sequence-hero]");
+        const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
+        const leftLine = root.querySelector<SVGLineElement>("[data-guide-left]");
+        const rightLine = root.querySelector<SVGLineElement>("[data-guide-right]");
+        if (!heroStageElement || !overlay || !leftLine || !rightLine) return;
+
+        const overlayRect = overlay.getBoundingClientRect();
+        if (overlayRect.width === 0 || overlayRect.height === 0) return;
+
+        const portalStyles = getComputedStyle(heroStageElement);
+        const centerX = parsePercent(portalStyles.getPropertyValue("--portal-x"), 55.9);
+        const centerY = parsePercent(portalStyles.getPropertyValue("--portal-y"), 54.6);
+        const radiusPx = parseRadiusPx(portalStyles.getPropertyValue("--portal-r"));
+        const anchorX = (guideAnchor.x / 100) * overlayRect.width;
+        const anchorY = (guideAnchor.y / 100) * overlayRect.height;
+        const circleX = (centerX / 100) * overlayRect.width;
+        const circleY = (centerY / 100) * overlayRect.height;
+        const dx = anchorX - circleX;
+        const dy = anchorY - circleY;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance <= radiusPx) return;
+
+        const baseAngle = Math.atan2(dy, dx);
+        const tangentAngle = Math.acos(radiusPx / distance);
+        const tangentA = {
+          x: circleX + radiusPx * Math.cos(baseAngle + tangentAngle),
+          y: circleY + radiusPx * Math.sin(baseAngle + tangentAngle)
+        };
+        const tangentB = {
+          x: circleX + radiusPx * Math.cos(baseAngle - tangentAngle),
+          y: circleY + radiusPx * Math.sin(baseAngle - tangentAngle)
+        };
+        const leftPixelPoint = tangentA.x < tangentB.x ? tangentA : tangentB;
+        const rightPixelPoint = tangentA.x < tangentB.x ? tangentB : tangentA;
+        const leftPoint = {
+          x: (leftPixelPoint.x / overlayRect.width) * 100,
+          y: (leftPixelPoint.y / overlayRect.height) * 100
+        };
+        const rightPoint = {
+          x: (rightPixelPoint.x / overlayRect.width) * 100,
+          y: (rightPixelPoint.y / overlayRect.height) * 100
+        };
+
+        leftLine.setAttribute("x2", String(leftPoint.x));
+        leftLine.setAttribute("y2", String(leftPoint.y));
+        rightLine.setAttribute("x2", String(rightPoint.x));
+        rightLine.setAttribute("y2", String(rightPoint.y));
+      };
+
+      const guideAnchorElement = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+      const guideAnchorObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleHeroGuideAnchor);
+
+      if (guideAnchorElement) {
+        guideAnchorObserver?.observe(guideAnchorElement);
+      }
+
+      resetHeroGuideArms();
+      window.addEventListener("resize", scheduleHeroGuideAnchor);
+
+      let replayHeroIntroOnReturn: (() => void) | null = null;
+
+      const context = gsap.context(() => {
+        const heroStage = "[data-sequence-hero]";
+
+        gsap.to("[data-intro-fade]", {
+          autoAlpha: 0,
+          duration: 1.15,
+          delay: 0.15,
+          ease: "power2.out"
+        });
+
+        gsap.to("[data-marker-halo]", {
+          scale: 1.12,
+          autoAlpha: 0.72,
+          duration: 1.35,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        gsap.to("[data-marker-target]", {
+          keyframes: [
+            { x: 24, y: -20, duration: 0.9 },
+            { x: 42, y: 10, duration: 0.9 },
+            { x: 16, y: 28, duration: 0.8 },
+            { x: 0, y: 0, duration: 0.8 }
+          ],
+          repeat: -1,
+          ease: "sine.inOut"
+        });
+
+        const heroTimeline = gsap.timeline({
+          defaults: { ease: "sine.inOut" },
+          onUpdate: applyHeroGuidePortalEdges
+        });
+
+        heroTimeline
+          .set(
+            heroStage,
+            {
+              "--portal-x": "31.8%",
+              "--portal-y": "54.6%",
+              "--portal-r": "0.1vw"
+            },
+            0
+          )
+          .set("[data-portal-image]", { scale: 1, xPercent: 0 }, 0)
+          .set("[data-dark-wash]", { autoAlpha: 1 }, 0)
+          .set("[data-hero-copy]", { autoAlpha: 0, y: 34 }, 0)
+          .call(resetHeroGuideArms, undefined, 0)
+          .set("[data-corner-mark] span", { scaleX: 0, scaleY: 0 }, 0)
+          .to(heroStage, { "--portal-r": "14.6vw", duration: 0.36, ease: "power2.out" }, 0.65)
+          .call(resetHeroGuideArms, undefined, 0.73)
+          .to("[data-guide-arm]", { autoAlpha: 1, duration: 0.01, ease: "none" }, 0.74)
+          .to(
+            heroStage,
+            {
+              "--portal-x": "37%",
+              "--portal-r": "14.6vw",
+              duration: 1.1,
+              ease: "power1.inOut"
+            },
+            0.65
+          )
+          .to(
+            heroStage,
+            {
+              "--portal-x": "55.9%",
+              "--portal-y": "54.6%",
+              "--portal-r": "14.6vw",
+              duration: 0.75,
+              ease: "power1.inOut"
+            },
+            1.75
+          )
+          .to(heroStage, { "--portal-r": "33.6vw", duration: 0.6, ease: "power2.inOut" }, 2.5)
+          .to("[data-guide-arm]", { autoAlpha: 0, duration: 0.35, ease: "sine.out" }, 2.78)
+          .to("[data-portal-image]", { scale: 1.05, xPercent: -1.8, duration: 4.5, ease: "sine.inOut" }, 0)
+          .to(
+            heroStage,
+            {
+              "--portal-x": "62%",
+              "--portal-y": "51%",
+              "--portal-r": "96vw",
+              duration: 1.15,
+              ease: "power2.inOut"
+            },
+            3.1
+          )
+          .to("[data-dark-wash]", { autoAlpha: 0, duration: 0.45, ease: "sine.out" }, 4.15)
+          .fromTo(
+            "[data-hero-copy]",
+            { autoAlpha: 0, y: 34 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.5,
+              stagger: 0.05,
+              ease: "power2.out"
+            },
+            4.15
+          )
+          .to(
+            "[data-corner-mark] span",
+            {
+              scaleX: 1,
+              scaleY: 1,
+              duration: 0.35,
+              stagger: 0.04,
+              ease: "sine.out"
+            },
+            4.15
+          );
+
+        let hasLeftHero = false;
+        let previousScrollY = window.scrollY;
+
+        replayHeroIntroOnReturn = () => {
+          const currentScrollY = window.scrollY;
+          const isScrollingUp = currentScrollY < previousScrollY;
+          const replayLine = Math.max(180, window.innerHeight * 0.34);
+
+          if (currentScrollY > window.innerHeight * 0.9) {
+            hasLeftHero = true;
+          }
+
+          if (hasLeftHero && isScrollingUp && currentScrollY < replayLine && !heroTimeline.isActive()) {
+            hasLeftHero = false;
+            resetHeroGuideArms();
+            heroTimeline.invalidate().restart(true, false);
+          }
+
+          previousScrollY = currentScrollY;
+        };
+
+        window.addEventListener("scroll", replayHeroIntroOnReturn, {
+          passive: true
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-reveal-card]").forEach((card, index) => {
+          gsap.fromTo(
+            card,
+            { autoAlpha: 0, y: 72, scale: 0.96 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.9,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: card,
+                start: "top 82%",
+                toggleActions: "play none none reverse"
+              },
+              delay: (index % 3) * 0.08
+            }
+          );
+        });
+      }, root);
 
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
@@ -532,7 +481,9 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
     };
 
     if ("requestIdleCallback" in window) {
-      idleCallbackId = window.requestIdleCallback(startAnimationsSafely, { timeout: 1500 });
+      idleCallbackId = window.requestIdleCallback(startAnimationsSafely, {
+        timeout: 1500
+      });
     } else {
       timeoutId = globalThis.setTimeout(startAnimationsSafely, 350);
     }
@@ -570,18 +521,13 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
   return (
     <section id="tickets" data-sequence-hero style={portalStyle} className="relative min-h-screen overflow-hidden bg-[#243646] text-[#d3d7da]">
-      <img src={assets.hero} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40 saturate-[0.8]" />
+      <Image src={assets.hero} alt="" fill sizes="100vw" className="object-cover opacity-40 saturate-[0.8]" />
       <div data-portal className="absolute inset-0 overflow-hidden">
-        <img
-          data-portal-image
-          src={assets.hero}
-          alt={copy.heroImageAlt}
-          className="h-full w-full object-cover"
-        />
+        <Image data-portal-image src={assets.hero} alt={copy.heroImageAlt} fill priority sizes="100vw" className="h-full w-full object-cover" />
       </div>
       <div data-dark-wash className="absolute inset-0 bg-[#243646]/72" />
       <div data-intro-fade className="pointer-events-none absolute inset-0 z-10 bg-[#243646]">
-        <img src={assets.hero} alt="" className="h-full w-full object-cover opacity-60" />
+        <Image src={assets.hero} alt="" fill sizes="100vw" className="object-cover opacity-60" />
         <div className="absolute inset-0 bg-[#243646]/50" />
       </div>
 
@@ -599,7 +545,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
       <HeroGuideOverlay />
 
-      <img src={assets.verticalLogo} alt="" className="absolute right-4 top-[18vh] z-20 h-24 w-auto opacity-80 md:right-[2.5vw] md:top-[16vh] md:h-36 md:opacity-90" />
+      <Image src={assets.verticalLogo} alt="" width={72} height={554} className="absolute right-4 top-[18vh] z-20 h-24 w-auto opacity-80 md:right-[2.5vw] md:top-[16vh] md:h-36 md:opacity-90" />
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
@@ -611,9 +557,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
           {copy.heroDescription}
         </p>
         <div data-hero-copy className="mt-3 flex flex-col items-start gap-3 opacity-0 md:flex-row md:items-end md:gap-4">
-          <h1 className="whitespace-nowrap text-[clamp(1.55rem,6.4vw,3rem)] leading-none text-white/[0.04] [-webkit-text-stroke:1px_#d3d7da] md:text-[clamp(2rem,4.2vw,3rem)]">
-            {copy.heroTitle}
-          </h1>
+          <h1 className="whitespace-nowrap text-[clamp(1.55rem,6.4vw,3rem)] leading-none text-white/[0.04] [-webkit-text-stroke:1px_#d3d7da] md:text-[clamp(2rem,4.2vw,3rem)]">{copy.heroTitle}</h1>
           <Link href="#explore" className="mb-1 rounded-full border border-[#d3d7da] px-3 py-[6px] text-[14px] leading-none text-[#d3d7da] transition hover:bg-[#d3d7da] hover:text-[#243646] md:mb-[0.3rem] md:px-4 md:text-[13px]">
             {copy.learnMore}
           </Link>
@@ -628,9 +572,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
       <div className="absolute bottom-0 left-0 right-0 z-30 bg-[#eceff1] px-3 py-3 md:px-[2.6vw] md:py-4">
         <div className="overflow-hidden rounded-full bg-[#995d3e] text-white">
-          <p className="w-max animate-[landing-marquee_28s_linear_infinite] whitespace-pre px-3 py-2 text-[clamp(1rem,6vw,2.5rem)] leading-none">
-            {tickerText}
-          </p>
+          <p className="w-max animate-[landing-marquee_28s_linear_infinite] whitespace-pre px-3 py-2 text-[clamp(1rem,6vw,2.5rem)] leading-none">{tickerText}</p>
         </div>
       </div>
     </section>
@@ -641,50 +583,12 @@ function HeroGuideOverlay() {
   const clipId = `${useId().replace(/:/g, "")}-hero-emblem`;
 
   return (
-    <svg
-      data-guide-overlay
-      className="pointer-events-none absolute inset-0 z-20 hidden size-full text-white/75 md:block"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <svg
-        data-guide-emblem
-        x={HERO_GUIDE_FALLBACK_ANCHOR_X - HERO_GUIDE_ICON_WIDTH / 2}
-        y={HERO_GUIDE_FALLBACK_ANCHOR_Y - HERO_GUIDE_ICON_HEIGHT / 2}
-        width={HERO_GUIDE_ICON_WIDTH}
-        height={HERO_GUIDE_ICON_HEIGHT}
-        viewBox="0 0 36 59"
-        preserveAspectRatio="none"
-        overflow="visible"
-      >
+    <svg data-guide-overlay className="pointer-events-none absolute inset-0 z-20 hidden size-full text-white/75 md:block" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <svg data-guide-emblem x={HERO_GUIDE_FALLBACK_ANCHOR_X - HERO_GUIDE_ICON_WIDTH / 2} y={HERO_GUIDE_FALLBACK_ANCHOR_Y - HERO_GUIDE_ICON_HEIGHT / 2} width={HERO_GUIDE_ICON_WIDTH} height={HERO_GUIDE_ICON_HEIGHT} viewBox="0 0 36 59" preserveAspectRatio="none" overflow="visible">
         <FortEmblemPaths clipId={clipId} includeDot={false} />
       </svg>
-      <line
-        data-guide-arm
-        data-guide-left
-        x1={HERO_GUIDE_FALLBACK_ANCHOR_X}
-        y1={HERO_GUIDE_FALLBACK_ANCHOR_Y}
-        x2={HERO_GUIDE_FALLBACK_ANCHOR_X}
-        y2={HERO_GUIDE_FALLBACK_ANCHOR_Y}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.15"
-        strokeDasharray="0.2 1.05"
-        vectorEffect="non-scaling-stroke"
-      />
-      <line
-        data-guide-arm
-        data-guide-right
-        x1={HERO_GUIDE_FALLBACK_ANCHOR_X}
-        y1={HERO_GUIDE_FALLBACK_ANCHOR_Y}
-        x2={HERO_GUIDE_FALLBACK_ANCHOR_X}
-        y2={HERO_GUIDE_FALLBACK_ANCHOR_Y}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.15"
-        vectorEffect="non-scaling-stroke"
-      />
+      <line data-guide-arm data-guide-left x1={HERO_GUIDE_FALLBACK_ANCHOR_X} y1={HERO_GUIDE_FALLBACK_ANCHOR_Y} x2={HERO_GUIDE_FALLBACK_ANCHOR_X} y2={HERO_GUIDE_FALLBACK_ANCHOR_Y} stroke="currentColor" strokeLinecap="round" strokeWidth="1.15" strokeDasharray="0.2 1.05" vectorEffect="non-scaling-stroke" />
+      <line data-guide-arm data-guide-right x1={HERO_GUIDE_FALLBACK_ANCHOR_X} y1={HERO_GUIDE_FALLBACK_ANCHOR_Y} x2={HERO_GUIDE_FALLBACK_ANCHOR_X} y2={HERO_GUIDE_FALLBACK_ANCHOR_Y} stroke="currentColor" strokeLinecap="round" strokeWidth="1.15" vectorEffect="non-scaling-stroke" />
       <circle data-guide-dot cx={HERO_GUIDE_FALLBACK_ANCHOR_X} cy={HERO_GUIDE_FALLBACK_ANCHOR_Y} r="0.42" fill="currentColor" vectorEffect="non-scaling-stroke" />
     </svg>
   );
@@ -708,31 +612,6 @@ function FortEmblemPaths({ clipId, includeDot = true }: { clipId: string; includ
   );
 }
 
-function GuideTopIcon() {
-  return (
-    <g data-guide-icon aria-hidden="true">
-      <path
-        d="M50.85 5.25H51.75L52.05 7.35H52.62L53.22 10.95"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="square"
-        strokeLinejoin="miter"
-        strokeWidth="1.15"
-        vectorEffect="non-scaling-stroke"
-      />
-      <path
-        d="M51.95 5.25H52.68L52.68 7.35"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="square"
-        strokeLinejoin="miter"
-        strokeWidth="1.15"
-        vectorEffect="non-scaling-stroke"
-      />
-    </g>
-  );
-}
-
 function FloatingMarkerIcon() {
   return (
     <svg className="size-[78px] overflow-visible drop-shadow-[0_0_8px_rgba(255,255,255,0.65)]" fill="none" viewBox="0 0 78.155 78.155" aria-hidden="true">
@@ -748,13 +627,7 @@ function AlFahidiFortEmblem({ isScrolled }: { isScrolled: boolean }) {
 
   return (
     <span data-hero-guide-anchor className="relative grid h-[clamp(2.8rem,3.85vw,3.45rem)] w-[clamp(1.35rem,2.05vw,1.8rem)] shrink-0 place-items-center self-center">
-      <svg
-        className={`block size-full transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}
-        fill="none"
-        preserveAspectRatio="xMidYMid meet"
-        viewBox="0 0 36 59"
-        aria-hidden="true"
-      >
+      <svg className={`block size-full transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`} fill="none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 36 59" aria-hidden="true">
         <FortEmblemPaths clipId={clipId} />
       </svg>
     </span>
@@ -787,54 +660,40 @@ function HeroHeader() {
   ];
 
   return (
-    <header
-      className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between gap-3 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:gap-5 md:px-[2.7vw] md:py-4 ${
-        isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"
-      }`}
-    >
+    <header className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between gap-3 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:gap-5 md:px-[2.7vw] md:py-4 ${isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"}`}>
       <div className="grid min-w-[118px] gap-0.5 leading-none md:min-w-[150px]">
         <span className="font-display text-xl font-semibold md:text-3xl">حكومة دبي</span>
         <span className="text-[10px] font-bold uppercase tracking-wide">Government of Dubai</span>
       </div>
 
       <nav className="hidden flex-1 items-center justify-center gap-[clamp(1rem,2.05vw,2.55rem)] text-[clamp(1rem,1.28vw,1.35rem)] font-semibold md:flex">
-        <Link href="#tickets" className="rounded-full border border-current px-7 py-1.5">Book Tickets</Link>
+        <Link href="#tickets" className="rounded-full border border-current px-7 py-1.5">
+          Book Tickets
+        </Link>
         <span className="flex items-center gap-4">
           <span>عربي</span>
           <span className="h-6 w-px bg-current/40" />
           <Search size={20} aria-hidden="true" />
         </span>
         <Link href="#experience">Experience</Link>
-         <AlFahidiFortEmblem isScrolled={isScrolled} />
+        <AlFahidiFortEmblem isScrolled={isScrolled} />
         <Link href="#whats-on">What's on</Link>
         <Link href="#faq">FAQ</Link>
-        <Link href="#contact-us" className="underline underline-offset-4">Contact Us</Link>
+        <Link href="#contact-us" className="underline underline-offset-4">
+          Contact Us
+        </Link>
       </nav>
 
       <div className="hidden min-w-[clamp(160px,18vw,300px)] text-right font-black leading-none tracking-normal text-[#d3d7da] md:block">
-        <span className={`block transition-[font-size] duration-300 ${isScrolled ? "text-[clamp(2.25rem,3.2vw,3.7rem)]" : "text-[clamp(2.35rem,4vw,4.25rem)]"}`}>
-          حصن الفهيدي
-        </span>
-        <span className={`mt-1 block text-[clamp(1rem,1.35vw,1.45rem)] font-semibold leading-none transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>
-          Al Fahidi Fort
-        </span>
+        <span className={`block transition-[font-size] duration-300 ${isScrolled ? "text-[clamp(2.25rem,3.2vw,3.7rem)]" : "text-[clamp(2.35rem,4vw,4.25rem)]"}`}>حصن الفهيدي</span>
+        <span className={`mt-1 block text-[clamp(1rem,1.35vw,1.45rem)] font-semibold leading-none transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>Al Fahidi Fort</span>
       </div>
 
-      <button
-        type="button"
-        className="inline-grid size-11 place-items-center rounded-full border border-current text-[#d3d7da] md:hidden"
-        aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-        aria-expanded={isMenuOpen}
-        onClick={() => setIsMenuOpen((open) => !open)}
-      >
+      <button type="button" className="inline-grid size-11 place-items-center rounded-full border border-current text-[#d3d7da] md:hidden" aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)}>
         {isMenuOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
       </button>
 
-      <div
-        className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition md:hidden ${
-          isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"
-        }`}
-      >
+      <div className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition md:hidden ${isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"}`}>
         <Link href="#tickets" onClick={() => setIsMenuOpen(false)} className="rounded-full border border-current px-5 py-2 text-center">
           Book Tickets
         </Link>
@@ -902,16 +761,14 @@ function FeaturedCeremonialCard({ copy }: { copy: SequenceCopy }) {
       <div data-marker-zone className="relative">
         <div data-pop-image data-push-pop className="relative aspect-square overflow-hidden bg-white">
           <div className="absolute inset-0 opacity-40 [background:repeating-linear-gradient(155deg,transparent_0,transparent_5px,rgba(36,54,70,0.18)_6px,transparent_7px)]" />
-          <img src={assets.guidedObject} alt="" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
+          <Image src={assets.guidedObject} alt="" width={1299} height={1787} sizes="(min-width: 768px) 28vw, 82vw" className="absolute inset-x-[9%] bottom-[4%] top-[4%] h-[92%] w-[82%] object-contain" />
         </div>
-        <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
+        <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 96px, 64px" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
       </div>
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.ceremonialTitle}</h2>
         <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.exhibitionUntil29}</p>
-        <p className="max-w-[360px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">
-          {copy.ceremonialDescription}
-        </p>
+        <p className="max-w-[360px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.ceremonialDescription}</p>
         <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
           {copy.learnMore}
         </Link>
@@ -924,10 +781,10 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
       <div data-marker-zone className="relative">
-        <div data-pop-image data-push-pop className="aspect-[1.95/1] overflow-hidden rounded-[999px] bg-white">
-          <img src={assets.fort} alt="" className="h-full w-full object-cover grayscale" />
+        <div data-pop-image data-push-pop className="relative aspect-[1.95/1] overflow-hidden rounded-[999px] bg-white">
+          <Image src={assets.fort} alt="" fill sizes="(min-width: 768px) 62vw, 90vw" className="object-cover grayscale" />
         </div>
-        <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-24" />
+        <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 96px, 56px" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-24" />
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[0.92fr_1.08fr] md:gap-5">
         <div>
@@ -935,9 +792,7 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
           <p className="mt-1 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.exhibitionUntil29}</p>
         </div>
         <div className="grid content-start gap-3">
-          <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">
-            {copy.historyDescription}
-          </p>
+          <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.historyDescription}</p>
           <Link href="#visit" className="w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
             {copy.learnMore}
           </Link>
@@ -948,21 +803,16 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
 }
 
 function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: string }) {
-  const maskClass =
-    story.variant === "wide"
-      ? "aspect-[1.95/1] rounded-[999px]"
-      : story.variant === "portrait"
-        ? "aspect-[0.76/1] rounded-[999px]"
-        : "aspect-square rounded-full";
+  const maskClass = story.variant === "wide" ? "aspect-[1.95/1] rounded-[999px]" : story.variant === "portrait" ? "aspect-[0.76/1] rounded-[999px]" : "aspect-square rounded-full";
   const imagePositionClass = story.title === "Origins and visions" ? "object-left" : "object-center";
 
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
       <div data-marker-zone className="relative">
-        <div data-pop-image data-push-pop className={`overflow-hidden bg-[#dde2e3] ${maskClass}`}>
-          <img src={story.image} alt={story.imageAlt} className={`h-full w-full object-cover ${imagePositionClass} transition duration-700 hover:scale-105`} />
+        <div data-pop-image data-push-pop className={`relative overflow-hidden bg-[#dde2e3] ${maskClass}`}>
+          <Image src={story.image} alt={story.imageAlt} fill sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw" className={`object-cover ${imagePositionClass} transition duration-700 hover:scale-105`} />
         </div>
-        <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-20" />
+        <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 80px, 56px" className="absolute left-0 top-0 z-20 size-14 object-contain opacity-0 md:size-20" />
       </div>
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.2rem,3.2vw,3.2rem)] leading-[0.98] text-black">{story.title}</h2>
@@ -984,20 +834,18 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
           <div className="w-max rounded-full border border-[#d3d7da] px-4 py-1 text-lg">{copy.exhibition}</div>
           <div data-feature-visual className="relative aspect-square w-full max-w-[360px] justify-self-center">
             <div className="absolute inset-0 rounded-full bg-[#66727e]" />
-            <img data-pop-image data-push-pop src={assets.guidedObject} alt="" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
+            <Image data-pop-image data-push-pop src={assets.guidedObject} alt="" width={1299} height={1787} sizes="min(80vw, 288px)" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
           </div>
           <div>
             <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.ceremonialTitle}</h2>
             <p className="mt-2 text-base font-semibold">{copy.exhibitionUntil29}</p>
-            <p className="mt-4 max-w-[420px] text-base leading-snug">
-              {copy.darkDescription}
-            </p>
+            <p className="mt-4 max-w-[420px] text-base leading-snug">{copy.darkDescription}</p>
           </div>
         </article>
 
         <article className="grid gap-5">
-          <div data-feature-visual data-conservation className="aspect-[1/1.05] w-full overflow-hidden rounded-t-full">
-            <img data-pop-image data-push-pop src={assets.conservation} alt="" className="h-full w-full object-cover grayscale" />
+          <div data-feature-visual data-conservation className="relative aspect-[1/1.05] w-full overflow-hidden rounded-t-full">
+            <Image data-pop-image data-push-pop src={assets.conservation} alt="" fill sizes="90vw" className="object-cover grayscale" />
           </div>
           <div>
             <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.conservationTitle}</h3>
@@ -1019,14 +867,7 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
 
         <div data-feature-visual className="absolute left-[5.9%] top-[22.56%] aspect-square w-[39.86%]">
           <div className="absolute inset-0 rounded-full bg-[#66727e]" />
-          <img
-            data-artifact
-            data-pop-image
-            data-push-pop
-            src={assets.guidedObject}
-            alt=""
-            className="absolute left-[10.45%] top-[-3.4%] h-[108.9%] w-[79.1%] object-cover"
-          />
+          <Image data-artifact data-pop-image data-push-pop src={assets.guidedObject} alt="" width={1299} height={1787} sizes="40vw" className="absolute left-[10.45%] top-[-3.4%] h-[108.9%] w-[79.1%] object-cover" />
         </div>
 
         <div className="absolute left-[5.9%] top-[8.72%] z-20 w-[15.97%] font-display text-[#d3d7da]">
@@ -1035,9 +876,7 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
             <span className="text-white">{copy.heroEyebrow} </span>
             <span>{copy.heroDate}</span>
           </p>
-          <p className="mt-[6px] text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
-            {copy.darkDescription}
-          </p>
+          <p className="mt-[6px] text-[clamp(0.72rem,1.39vw,20px)] leading-normal">{copy.darkDescription}</p>
         </div>
 
         <div className="absolute left-[2.5%] top-[2.79%] z-20 flex w-[11.53%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%]">
@@ -1045,7 +884,7 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
         </div>
 
         <div data-feature-visual data-conservation className="absolute left-[66.04%] top-[8.95%] h-[52.91%] w-[31.46%] overflow-hidden rounded-t-full">
-          <img data-pop-image data-push-pop src={assets.conservation} alt="" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
+          <Image data-pop-image data-push-pop src={assets.conservation} alt="" width={3392} height={1891} sizes="57vw" className="absolute left-[-46.94%] top-0 h-full w-[180.25%] max-w-none object-cover grayscale" />
         </div>
 
         <div className="absolute left-[65.76%] top-[64.19%] z-20 w-[18.19%] font-display text-[#d3d7da]">
@@ -1056,16 +895,12 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
           </p>
         </div>
 
-        <Link
-          href="#guided-tour"
-          className="absolute left-[56.67%] top-[91.4%] z-20 flex w-[13.61%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%] font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da] transition hover:bg-white hover:text-[#243646]"
-        >
+        <Link href="#guided-tour" className="absolute left-[56.67%] top-[91.4%] z-20 flex w-[13.61%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%] font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da] transition hover:bg-white hover:text-[#243646]">
           {copy.guideTour}
         </Link>
       </div>
     </section>
   );
-
 }
 
 function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
@@ -1075,9 +910,9 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
         <article className="grid gap-6">
           <div data-marker-zone className="relative">
             <div data-pop-image className="relative aspect-[1.95/1] overflow-hidden rounded-full bg-transparent">
-              <img data-pop-image data-push-pop src={assets.trade} alt="" className="absolute left-[-9%] top-[-9%] h-[118%] w-[118%] max-w-none object-cover object-center grayscale" />
+              <Image data-pop-image data-push-pop src={assets.trade} alt="" width={3891} height={2595} sizes="(min-width: 768px) 58vw, 90vw" className="absolute left-[-9%] top-[-9%] h-[118%] w-[118%] max-w-none object-cover object-center grayscale" />
             </div>
-            <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
+            <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 96px, 64px" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.95fr_1.05fr] md:gap-6">
             <div>
@@ -1085,9 +920,7 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
               <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">{copy.exhibitionUntil29}</p>
             </div>
             <div className="grid gap-4">
-              <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">
-                {copy.sourceDescription}
-              </p>
+              <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.sourceDescription}</p>
               <Link href="#explore" className="inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
                 {copy.learnMore}
               </Link>
@@ -1097,17 +930,15 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
 
         <article className="grid content-start gap-6">
           <div data-marker-zone className="relative">
-            <div data-pop-image className="aspect-square overflow-hidden rounded-full bg-white">
-              <img data-pop-image data-push-pop src={assets.ceremonialStone} alt="" className="h-full w-full object-cover" />
+            <div data-pop-image className="relative aspect-square overflow-hidden rounded-full bg-white">
+              <Image data-pop-image data-push-pop src={assets.ceremonialStone} alt="" fill sizes="(min-width: 768px) 34vw, 90vw" className="object-cover" />
             </div>
-            <img data-scroll-marker data-marker-wipe src={assets.marker} alt="" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
+            <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 96px, 64px" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div>
             <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.ceremonialTitle}</h2>
             <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">{copy.exhibitionUntil29}</p>
-            <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">
-              {copy.ceremonialShortDescription}
-            </p>
+            <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.ceremonialShortDescription}</p>
             <Link href="#visit" className="mt-5 inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
               {copy.learnMore}
             </Link>

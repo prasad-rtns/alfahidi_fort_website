@@ -1,13 +1,36 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
 
+function normalizeBasePath(value: string | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed === "/") return "";
+  return `/${trimmed.replace(/^\/+|\/+$/g, "")}`;
+}
+
+const appBasePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
+
+function stripAppBasePath(pathname: string) {
+  if (!appBasePath) return pathname;
+  if (pathname === appBasePath) return "/";
+  if (pathname.startsWith(`${appBasePath}/`)) return pathname.slice(appBasePath.length);
+  return pathname;
+}
+
 export function SmoothScrollProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const reducedMotion = useReducedMotion();
+  const logicalPathname = stripAppBasePath(pathname ?? "");
+  const shouldEnableSmoothScroll = /^\/(?:en|ar)\/?$/.test(logicalPathname);
 
   useEffect(() => {
+    if (!shouldEnableSmoothScroll) {
+      return;
+    }
+
     let cancelled = false;
     let cleanup: (() => void) | undefined;
     let idleCallbackId: number | undefined;
@@ -45,7 +68,9 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     };
 
     if ("requestIdleCallback" in window) {
-      idleCallbackId = window.requestIdleCallback(startSmoothScrollSafely, { timeout: 1500 });
+      idleCallbackId = window.requestIdleCallback(startSmoothScrollSafely, {
+        timeout: 1500
+      });
     } else {
       timeoutId = globalThis.setTimeout(startSmoothScrollSafely, 350);
     }
@@ -60,7 +85,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       }
       cleanup?.();
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, shouldEnableSmoothScroll]);
 
   return <>{children}</>;
 }

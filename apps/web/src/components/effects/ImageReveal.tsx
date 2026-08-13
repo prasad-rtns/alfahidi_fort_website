@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap, registerGsap } from "@/animations/gsap.config";
 import { cn } from "@/components/ui/cn";
 import { useInView } from "@/components/effects/useInView";
+import { publicAsset } from "@/lib/routing/public-asset";
 
 export type ImageRevealVariant = "circle" | "arch" | "wide";
 
@@ -58,7 +59,7 @@ export function ImageReveal({
     >
       <Image
         ref={imageRef}
-        src={src}
+        src={publicAsset(src)}
         alt={alt}
         fill
         priority={priority}

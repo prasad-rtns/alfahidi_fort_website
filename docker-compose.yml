@@ -3,7 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        APP_BASE_PATH: ${APP_BASE_PATH:-}
     environment:
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      APP_BASE_PATH: ${APP_BASE_PATH:-}
+      NEXT_PUBLIC_BASE_PATH: ${APP_BASE_PATH:-}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3111}
     ports:
-      - "${WEB_PORT:-3111}:3111"
+      - "${WEB_PORT:-3111}:3000"

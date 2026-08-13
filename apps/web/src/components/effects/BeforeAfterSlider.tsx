@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ChevronsLeftRight } from "lucide-react";
 import { useState } from "react";
+import { publicAsset } from "@/lib/routing/public-asset";
 
 export function BeforeAfterSlider({
   before,
@@ -22,9 +23,9 @@ export function BeforeAfterSlider({
   return (
     <figure className="relative overflow-hidden rounded-[260px] bg-sand">
       <div className="relative aspect-[16/9] min-h-[320px]">
-        <Image src={after} alt={afterLabel} fill sizes="(min-width: 1024px) 72vw, 94vw" className="object-cover" />
+        <Image src={publicAsset(after)} alt={afterLabel} fill sizes="(min-width: 1024px) 72vw, 94vw" className="object-cover" />
         <div className="absolute inset-0 overflow-hidden" style={{ width: `${value}%` }}>
-          <Image src={before} alt={beforeLabel} fill sizes="(min-width: 1024px) 72vw, 94vw" className="max-w-none object-cover" />
+          <Image src={publicAsset(before)} alt={beforeLabel} fill sizes="(min-width: 1024px) 72vw, 94vw" className="max-w-none object-cover" />
         </div>
         <div className="absolute inset-y-0" style={{ left: `${value}%` }}>
           <span className="absolute inset-y-0 w-px bg-pearl" />

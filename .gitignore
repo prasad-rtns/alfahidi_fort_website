@@ -32,6 +32,7 @@ apps/cms/
 
 # Local reference/source dumps not intended for GitHub
 ignore/
+deployment/.artifacts/
 Al Fahidi Fort_Website-Animation.mp4
 prompt.txt
 

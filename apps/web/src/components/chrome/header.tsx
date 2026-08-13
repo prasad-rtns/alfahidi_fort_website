@@ -9,6 +9,21 @@ import { isDomEventRejection } from "@/components/runtime/browser-event-rejectio
 import { getTranslations } from "@/lib/i18n/translations";
 import type { Locale } from "@/lib/content/site-content";
 
+function normalizeBasePath(value: string | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed || trimmed === "/") return "";
+  return `/${trimmed.replace(/^\/+|\/+$/g, "")}`;
+}
+
+const appBasePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
+
+function stripAppBasePath(pathname: string) {
+  if (!appBasePath) return pathname;
+  if (pathname === appBasePath) return "/";
+  if (pathname.startsWith(`${appBasePath}/`)) return pathname.slice(appBasePath.length);
+  return pathname;
+}
+
 export function Header({ locale }: { locale: Locale }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,13 +32,14 @@ export function Header({ locale }: { locale: Locale }) {
   const oppositeLocale = locale === "en" ? "ar" : "en";
   const homeHref = `/${locale}`;
   const [languageHref, setLanguageHref] = useState(`/${oppositeLocale}`);
-  const isHome = pathname === homeHref;
+  const logicalPathname = stripAppBasePath(pathname ?? "");
+  const isHome = logicalPathname === homeHref;
   const showEmblem = isScrolled || isMenuOpen || !isHome;
   const t = getTranslations(locale).header;
 
   useEffect(() => {
     const updateLanguageHref = () => {
-      const currentPath = window.location.pathname;
+      const currentPath = stripAppBasePath(window.location.pathname);
       const localizedPath = currentPath.replace(new RegExp(`^/${locale}(?=/|$)`), `/${oppositeLocale}`);
       setLanguageHref(`${localizedPath}${window.location.search}${window.location.hash}`);
     };
@@ -51,12 +67,17 @@ export function Header({ locale }: { locale: Locale }) {
   }, []);
 
   const navLinks = [
-    { href: `${homeHref}#visit`, label: t.planYourVisit, native: false },
-    { href: `${homeHref}/faq`, label: t.faq, native: true },
-    { href: `${homeHref}/contact-us`, label: t.contactUs, native: true }
+    { href: `${homeHref}#visit`, label: t.planYourVisit },
+    { href: `${homeHref}/faq`, label: t.faq },
+    { href: `${homeHref}/contact-us`, label: t.contactUs }
   ];
 
   useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (connection?.saveData) {
+      return;
+    }
+
     const handlePrefetchError = (error: unknown) => {
       if (isDomEventRejection(error)) {
         return;
@@ -67,16 +88,34 @@ export function Header({ locale }: { locale: Locale }) {
       }
     };
 
-    void Promise.resolve(router.prefetch(`${homeHref}/faq`)).catch(handlePrefetchError);
-    void Promise.resolve(router.prefetch(`${homeHref}/contact-us`)).catch(handlePrefetchError);
+    let idleCallbackId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const prefetchRoutes = () => {
+      void Promise.resolve(router.prefetch(`${homeHref}/faq`)).catch(handlePrefetchError);
+      void Promise.resolve(router.prefetch(`${homeHref}/contact-us`)).catch(handlePrefetchError);
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleCallbackId = window.requestIdleCallback(prefetchRoutes, {
+        timeout: 3000
+      });
+    } else {
+      timeoutId = globalThis.setTimeout(prefetchRoutes, 1200);
+    }
+
+    return () => {
+      if (idleCallbackId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleCallbackId);
+      }
+      if (timeoutId !== undefined) {
+        globalThis.clearTimeout(timeoutId);
+      }
+    };
   }, [homeHref, router]);
 
   return (
-    <header
-      className={`fixed left-0 right-0 top-0 z-50 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:px-[2.7vw] md:py-4 ${
-        isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"
-      }`}
-    >
+    <header className={`fixed left-0 right-0 top-0 z-50 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:px-[2.7vw] md:py-4 ${isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"}`}>
       <div className="mx-auto flex max-w-[1368px] items-end justify-between gap-4">
         <div className="hidden min-w-0 items-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <Link href={homeHref} aria-label={t.government} className="relative -ml-3 self-center md:-ml-5">
@@ -97,34 +136,21 @@ export function Header({ locale }: { locale: Locale }) {
           </Link>
         </div>
 
-        <Link
-          href={homeHref}
-          data-hero-guide-anchor
-          className={`hidden shrink-0 self-center transition-opacity duration-300 md:grid ${showEmblem ? "opacity-100" : "opacity-0"}`}
-          aria-label={t.home}
-        >
+        <Link href={homeHref} data-hero-guide-anchor className={`hidden shrink-0 self-center transition-opacity duration-300 md:grid ${showEmblem ? "opacity-100" : "opacity-0"}`} aria-label={t.home}>
           <AlFahidiEmblem className="h-[clamp(2.8rem,3.85vw,3.45rem)] w-[clamp(1.35rem,2.05vw,1.8rem)]" />
         </Link>
 
         <div className="hidden min-w-0 items-end justify-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <nav className="mr-[clamp(1.8rem,4vw,4.75rem)] flex items-center gap-[clamp(0.9rem,1.4vw,1.25rem)] self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
-            {navLinks.map((link) =>
-              link.native ? (
-                <a key={link.href} href={link.href} className={pathname === link.href ? "underline underline-offset-4" : undefined}>
-                  {link.label}
-                </a>
-              ) : (
-                <Link key={link.href} href={link.href} className={pathname === link.href ? "underline underline-offset-4" : undefined}>
-                  {link.label}
-                </Link>
-              )
-            )}
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={logicalPathname === link.href ? "underline underline-offset-4" : undefined}>
+                {link.label}
+              </Link>
+            ))}
           </nav>
           <Link href={homeHref} aria-label={t.fort} className="grid justify-items-end gap-1">
             <AlFahidiWordmark className={`h-auto text-[#d3d7da] transition-[width] duration-300 ${isScrolled ? "w-[clamp(130px,11vw,170px)]" : "w-[clamp(145px,12.5vw,185px)]"}`} />
-            <span className={`text-[clamp(0.85rem,1.05vw,1.1rem)] font-bold leading-none text-[#d3d7da] transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>
-              {t.fort}
-            </span>
+            <span className={`text-[clamp(0.85rem,1.05vw,1.1rem)] font-bold leading-none text-[#d3d7da] transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>{t.fort}</span>
           </Link>
         </div>
 
@@ -136,38 +162,22 @@ export function Header({ locale }: { locale: Locale }) {
           <AlFahidiWordmark className="h-auto w-[120px]" />
         </Link>
 
-        <button
-          type="button"
-          className="inline-grid size-11 place-items-center rounded-full border border-current text-[#d3d7da] lg:hidden"
-          aria-label={isMenuOpen ? t.closeMenu : t.openMenu}
-          aria-expanded={isMenuOpen}
-          onClick={() => setIsMenuOpen((open) => !open)}
-        >
+        <button type="button" className="inline-grid size-11 place-items-center rounded-full border border-current text-[#d3d7da] lg:hidden" aria-label={isMenuOpen ? t.closeMenu : t.openMenu} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)}>
           {isMenuOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
         </button>
 
-        <div
-          className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition lg:hidden ${
-            isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"
-          }`}
-        >
+        <div className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition lg:hidden ${isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"}`}>
           <Link href={`${homeHref}#tickets`} onClick={() => setIsMenuOpen(false)} className="rounded-full border border-current px-5 py-2 text-center">
             {t.bookTickets}
           </Link>
           <Link href={`${homeHref}#explore`} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
             {t.experience}
           </Link>
-          {navLinks.map((link) =>
-            link.native ? (
-              <a key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
-                {link.label}
-              </a>
-            ) : (
-              <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
-                {link.label}
-              </Link>
-            )
-          )}
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
+              {link.label}
+            </Link>
+          ))}
           <div className="flex items-center justify-between py-2 text-base">
             <Link href={languageHref} onClick={() => setIsMenuOpen(false)}>
               {t.language}

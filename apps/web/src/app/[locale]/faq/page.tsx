@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { FaqAccordion } from "@/components/faq/faq-accordion";
 import { getTranslations } from "@/lib/i18n/translations";
+import { publicAsset } from "@/lib/routing/public-asset";
 import type { Locale } from "@/lib/content/site-content";
 
 export default async function FaqPage({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -9,7 +11,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: Lo
   return (
     <main className="bg-white text-black">
       <section className="relative flex h-[440px] items-center justify-center overflow-hidden pt-24 text-white md:h-[480px]">
-        <img src="/assets/faq/faq-hero.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <Image src={publicAsset("/assets/faq/faq-hero.png")} alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#243646]/85" />
         <h1 className="relative px-5 text-center text-[clamp(2.5rem,6vw,5.6rem)] leading-none">{t.title}</h1>
       </section>

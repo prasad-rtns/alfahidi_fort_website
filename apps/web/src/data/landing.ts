@@ -1,6 +1,7 @@
 import type { LandingPayload } from "@/types/landing";
+import { publicAsset } from "@/lib/routing/public-asset";
 
-const asset = (name: string) => `/assets/home/${name}.png`;
+const asset = (name: string) => publicAsset(`/assets/home/${name}.png`);
 
 const thumbnail = {
   src: asset("817cfed82c580c1797e98cd2899a66a237a596c0"),

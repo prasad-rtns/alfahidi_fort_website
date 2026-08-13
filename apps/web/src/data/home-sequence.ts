@@ -1,6 +1,7 @@
 import type { HomeSequencePayload } from "@/types/home-sequence";
+import { publicAsset } from "@/lib/routing/public-asset";
 
-const sequencePath = (filename: string) => `/assets/sequence/${filename}`;
+const sequencePath = (filename: string) => publicAsset(`/assets/sequence/${filename}`);
 
 export const homeSequencePayload: HomeSequencePayload = {
   cropTopRatio: 67 / 1240,

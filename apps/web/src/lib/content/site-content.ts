@@ -1,3 +1,5 @@
+import { publicAsset } from "@/lib/routing/public-asset";
+
 export const locales = ["en", "ar"] as const;
 export type Locale = (typeof locales)[number];
 
@@ -5,7 +7,7 @@ export function isLocale(locale: string): locale is Locale {
   return locales.includes(locale as Locale);
 }
 
-const asset = (name: string) => `/assets/home/${name}`;
+const asset = (name: string) => publicAsset(`/assets/home/${name}`);
 
 export type HomeContent = ReturnType<typeof getHomeContent>;
 
