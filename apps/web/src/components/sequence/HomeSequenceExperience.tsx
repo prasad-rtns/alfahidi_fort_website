@@ -36,7 +36,7 @@ const assets = {
 
 type SequenceCopy = HomeSequenceTranslation;
 
-const HERO_GUIDE_FALLBACK_ANCHOR_X = 65.7;
+const HERO_GUIDE_FALLBACK_ANCHOR_X = 47.7;
 const HERO_GUIDE_FALLBACK_ANCHOR_Y = 7.35;
 const HERO_GUIDE_ICON_WIDTH = 2.65;
 const HERO_GUIDE_ICON_HEIGHT = 6.5;
@@ -58,6 +58,101 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
     let cleanupAnimations: (() => void) | undefined;
     let idleCallbackId: number | undefined;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let guideAnchor = {
+      x: HERO_GUIDE_FALLBACK_ANCHOR_X,
+      y: HERO_GUIDE_FALLBACK_ANCHOR_Y
+    };
+    let guideAnchorFrame = 0;
+    let observedGuideAnchor: HTMLElement | null = null;
+    let observedGuideHeader: HTMLElement | null = null;
+
+    const guideAnchorObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => scheduleHeroGuideAnchor());
+
+    const observeHeroGuideLayout = () => {
+      const anchor = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+      const header = anchor?.closest<HTMLElement>("header") ?? null;
+
+      if (anchor !== observedGuideAnchor) {
+        if (observedGuideAnchor) {
+          guideAnchorObserver?.unobserve(observedGuideAnchor);
+        }
+        if (anchor) {
+          guideAnchorObserver?.observe(anchor);
+        }
+        observedGuideAnchor = anchor;
+      }
+
+      if (header !== observedGuideHeader) {
+        if (observedGuideHeader) {
+          guideAnchorObserver?.unobserve(observedGuideHeader);
+        }
+        if (header) {
+          guideAnchorObserver?.observe(header);
+        }
+        observedGuideHeader = header;
+      }
+    };
+
+    const measureHeroGuideAnchor = () => {
+      observeHeroGuideLayout();
+
+      const anchor = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
+      const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
+
+      if (!anchor || !overlay) return guideAnchor;
+
+      const anchorRect = anchor.getBoundingClientRect();
+      const overlayRect = overlay.getBoundingClientRect();
+
+      if (anchorRect.width === 0 || overlayRect.width === 0 || overlayRect.height === 0) {
+        return guideAnchor;
+      }
+
+      return {
+        x: ((anchorRect.left + anchorRect.width / 2 - overlayRect.left) / overlayRect.width) * 100,
+        y: ((anchorRect.top + anchorRect.height / 2) / overlayRect.height) * 100
+      };
+    };
+
+    const applyHeroGuideAnchor = ({ resetArms = false } = {}) => {
+      guideAnchor = measureHeroGuideAnchor();
+
+      const emblem = root.querySelector<SVGSVGElement>("[data-guide-emblem]");
+      const dot = root.querySelector<SVGCircleElement>("[data-guide-dot]");
+
+      emblem?.setAttribute("x", String(guideAnchor.x - HERO_GUIDE_ICON_WIDTH / 2));
+      emblem?.setAttribute("y", String(guideAnchor.y - HERO_GUIDE_ICON_HEIGHT / 2));
+      dot?.setAttribute("cx", String(guideAnchor.x));
+      dot?.setAttribute("cy", String(guideAnchor.y));
+
+      root.querySelectorAll<SVGLineElement>("[data-guide-arm]").forEach((line) => {
+        line.setAttribute("x1", String(guideAnchor.x));
+        line.setAttribute("y1", String(guideAnchor.y));
+
+        if (resetArms) {
+          line.setAttribute("x2", String(guideAnchor.x));
+          line.setAttribute("y2", String(guideAnchor.y));
+        }
+      });
+    };
+
+    function scheduleHeroGuideAnchor() {
+      window.cancelAnimationFrame(guideAnchorFrame);
+      guideAnchorFrame = window.requestAnimationFrame(() => applyHeroGuideAnchor());
+    }
+
+    applyHeroGuideAnchor();
+    scheduleHeroGuideAnchor();
+    window.addEventListener("resize", scheduleHeroGuideAnchor);
+
+    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+    if (fonts) {
+      void fonts.ready.then(() => {
+        if (!cancelled) {
+          scheduleHeroGuideAnchor();
+        }
+      });
+    }
 
     const startAnimations = async () => {
       const { gsap, registerGsap, ScrollTrigger } = await import("@/animations/gsap.config");
@@ -154,61 +249,9 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
       window.addEventListener("scroll", refreshFeatureLines, { passive: true });
       window.addEventListener("resize", refreshFeatureLines);
 
-      let guideAnchor = {
-        x: HERO_GUIDE_FALLBACK_ANCHOR_X,
-        y: HERO_GUIDE_FALLBACK_ANCHOR_Y
-      };
-      let guideAnchorFrame = 0;
-
-      const measureHeroGuideAnchor = () => {
-        const anchor = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
-        const overlay = root.querySelector<SVGSVGElement>("[data-guide-overlay]");
-
-        if (!anchor || !overlay) return guideAnchor;
-
-        const anchorRect = anchor.getBoundingClientRect();
-        const overlayRect = overlay.getBoundingClientRect();
-
-        if (anchorRect.width === 0 || overlayRect.width === 0 || overlayRect.height === 0) {
-          return guideAnchor;
-        }
-
-        return {
-          x: ((anchorRect.left + anchorRect.width / 2 - overlayRect.left) / overlayRect.width) * 100,
-          y: ((anchorRect.top + anchorRect.height / 2) / overlayRect.height) * 100
-        };
-      };
-
-      const applyHeroGuideAnchor = ({ resetArms = false } = {}) => {
-        guideAnchor = measureHeroGuideAnchor();
-
-        const emblem = root.querySelector<SVGSVGElement>("[data-guide-emblem]");
-        const dot = root.querySelector<SVGCircleElement>("[data-guide-dot]");
-
-        emblem?.setAttribute("x", String(guideAnchor.x - HERO_GUIDE_ICON_WIDTH / 2));
-        emblem?.setAttribute("y", String(guideAnchor.y - HERO_GUIDE_ICON_HEIGHT / 2));
-        dot?.setAttribute("cx", String(guideAnchor.x));
-        dot?.setAttribute("cy", String(guideAnchor.y));
-
-        root.querySelectorAll<SVGLineElement>("[data-guide-arm]").forEach((line) => {
-          line.setAttribute("x1", String(guideAnchor.x));
-          line.setAttribute("y1", String(guideAnchor.y));
-
-          if (resetArms) {
-            line.setAttribute("x2", String(guideAnchor.x));
-            line.setAttribute("y2", String(guideAnchor.y));
-          }
-        });
-      };
-
       const resetHeroGuideArms = () => {
         applyHeroGuideAnchor({ resetArms: true });
         gsap.set("[data-guide-arm]", { autoAlpha: 0 });
-      };
-
-      const scheduleHeroGuideAnchor = () => {
-        window.cancelAnimationFrame(guideAnchorFrame);
-        guideAnchorFrame = window.requestAnimationFrame(() => applyHeroGuideAnchor());
       };
 
       const parsePercent = (value: string, fallback: number) => {
@@ -277,15 +320,7 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
         rightLine.setAttribute("y2", String(rightPoint.y));
       };
 
-      const guideAnchorElement = document.querySelector<HTMLElement>("[data-hero-guide-anchor]");
-      const guideAnchorObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleHeroGuideAnchor);
-
-      if (guideAnchorElement) {
-        guideAnchorObserver?.observe(guideAnchorElement);
-      }
-
       resetHeroGuideArms();
-      window.addEventListener("resize", scheduleHeroGuideAnchor);
 
       let replayHeroIntroOnReturn: (() => void) | null = null;
 
@@ -453,9 +488,6 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
       cleanupAnimations = () => {
         window.removeEventListener("scroll", refreshFeatureLines);
         window.removeEventListener("resize", refreshFeatureLines);
-        window.removeEventListener("resize", scheduleHeroGuideAnchor);
-        window.cancelAnimationFrame(guideAnchorFrame);
-        guideAnchorObserver?.disconnect();
         if (replayHeroIntroOnReturn) {
           window.removeEventListener("scroll", replayHeroIntroOnReturn);
         }
@@ -496,6 +528,9 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
       if (timeoutId !== undefined) {
         window.clearTimeout(timeoutId);
       }
+      window.removeEventListener("resize", scheduleHeroGuideAnchor);
+      window.cancelAnimationFrame(guideAnchorFrame);
+      guideAnchorObserver?.disconnect();
       cleanupAnimations?.();
     };
   }, [reducedMotion]);
