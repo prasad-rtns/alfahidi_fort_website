@@ -1,0 +1,28 @@
+{
+  "header": {
+    "bookTickets": "Book Tickets",
+    "language": "العربية",
+    "search": "Search",
+    "experience": "Experience",
+    "planYourVisit": "Plan Your Visit",
+    "faq": "FAQ",
+    "contactUs": "Contact Us",
+    "fort": "Al Fahidi Fort",
+    "home": "Al Fahidi Fort home",
+    "government": "Government of Dubai",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "footer": {
+    "stayConnected": "Follow Us",
+    "updates": "Stay connected and discover the latest news, stories and updates from Al Fahidi Fort and Dubai Culture.",
+    "email": "Email",
+    "subscribe": "Subscribe",
+    "contactUs": "Contact us",
+    "faqs": "FAQs",
+    "disclaimer": "Disclaimer",
+    "terms": "Terms of use",
+    "privacy": "Privacy Policy",
+    "contactTel": "Contact Us Tel. 80033222"
+  }
+}

@@ -50,4 +50,16 @@ describe("FaqAccordion", () => {
     expect(screen.getByRole("button", { name: items[0].question })).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByText(items[0].answer)).not.toBeInTheDocument();
   });
+
+  it("lets keyboard users open an answer with Enter", async () => {
+    const user = userEvent.setup();
+    render(<FaqAccordion items={items} />);
+
+    const secondQuestion = screen.getByRole("button", { name: items[1].question });
+    secondQuestion.focus();
+    await user.keyboard("{Enter}");
+
+    expect(secondQuestion).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(items[1].answer)).toBeInTheDocument();
+  });
 });

@@ -19,11 +19,18 @@ export default defineConfig({
       include: [
         "src/app/[locale]/contact-us/page.tsx",
         "src/app/[locale]/faq/page.tsx",
+        "src/app/[locale]/experience/page.tsx",
+        "src/app/[locale]/plan-your-visit/page.tsx",
         "src/components/chrome/footer.tsx",
         "src/components/chrome/header.tsx",
+        "src/components/contact/contact-map.tsx",
+        "src/components/experience/experience-pop-image.tsx",
+        "src/components/plan-visit/plan-visit-reveal-image.tsx",
         "src/components/faq/faq-accordion.tsx",
         "src/components/runtime/browser-event-rejection-guard.tsx",
-        "src/lib/i18n/**/*.ts"
+        "src/lib/i18n/**/*.ts",
+        "src/lib/routing/contact-links.ts",
+        "src/lib/routing/header-routes.ts"
       ],
       thresholds: {
         branches: 95,

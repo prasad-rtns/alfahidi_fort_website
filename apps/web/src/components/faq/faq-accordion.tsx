@@ -20,7 +20,7 @@ export function FaqAccordion({ items }: { items: readonly FaqItem[] }) {
           <div key={item.question} className="py-8">
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-6 text-left text-[clamp(1.25rem,2.5vw,1.875rem)] leading-snug"
+              className="flex w-full min-h-11 items-center justify-between gap-4 text-start text-[clamp(1.25rem,2.5vw,1.875rem)] leading-[1.067] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#243646]"
               aria-expanded={isOpen}
               onClick={() => setOpenIndex(isOpen ? -1 : index)}
             >
@@ -34,7 +34,7 @@ export function FaqAccordion({ items }: { items: readonly FaqItem[] }) {
                 {isOpen ? <Minus className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2.5} />}
               </span>
             </button>
-            {isOpen ? <p className="mt-6 max-w-[1280px] text-[clamp(1rem,1.5vw,1.25rem)] leading-relaxed">{item.answer}</p> : null}
+            {isOpen ? <p className="mt-6 w-full text-xl leading-6">{item.answer}</p> : null}
           </div>
         );
       })}

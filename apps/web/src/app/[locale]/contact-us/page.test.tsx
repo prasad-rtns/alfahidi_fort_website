@@ -1,38 +1,52 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import ContactUsPage from "@/app/[locale]/contact-us/page";
+import ContactUsPage, { generateMetadata } from "@/app/[locale]/contact-us/page";
+import contactAr from "@/content/contact/ar.json";
+import contactEn from "@/content/contact/en.json";
 import { getTranslations } from "@/lib/i18n/translations";
 
 describe("ContactUsPage", () => {
-  it("renders English contact information and Google Maps link", async () => {
+  it("renders the new English contact layout with working destinations", async () => {
     const t = getTranslations("en").contact;
-
+    expect(t).toBe(contactEn);
     render(await ContactUsPage({ params: Promise.resolve({ locale: "en" }) }));
 
     expect(screen.getByRole("heading", { name: t.title, level: 1 })).toBeInTheDocument();
-    expect(screen.getByText(t.guide)).toBeInTheDocument();
-    expect(screen.getByText(t.inquiries)).toBeInTheDocument();
+    expect(screen.getByText(t.introFirst)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t.getInTouch })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t.followUs })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t.visitUs })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: t.planningTitle })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: t.email })).toHaveAttribute("href", `mailto:${t.email}`);
+    expect(screen.getByRole("link", { name: t.telephone })).toHaveAttribute("href", `tel:${t.telephone}`);
+    expect(screen.getByRole("link", { name: new RegExp(t.openMapsLabel) })).toHaveAttribute("href", t.directionsUrl);
+    expect(screen.getByRole("link", { name: `${t.instagramLabel}, ${t.opensInNewTab}` })).toHaveAttribute("href", t.instagramUrl);
     expect(screen.getByAltText(t.mapAlt)).toHaveAttribute("src", "/assets/contact/contact-map-reference.png");
-    expect(screen.getByRole("link", { name: t.openMapsLabel })).toHaveAttribute(
-      "href",
-      "https://www.google.com/maps/search/?api=1&query=Al%20Fahidi%20Fort%2C%20Dubai"
-    );
-    expect(screen.getByText(t.openMaps)).toBeInTheDocument();
-
-    for (const item of t.details) {
-      expect(screen.getByText(item.label)).toBeInTheDocument();
-      expect(screen.getByText((_content, element) => element?.textContent === item.value)).toBeInTheDocument();
-    }
+    expect(screen.getByRole("link", { name: t.planYourVisit })).toHaveAttribute("href", "/en/plan-your-visit");
+    expect(screen.getByRole("link", { name: t.faqs })).toHaveAttribute("href", "/en/faq");
   });
 
-  it("renders Arabic contact information", async () => {
+  it("renders localized Arabic content and links", async () => {
     const t = getTranslations("ar").contact;
+    expect(t).toBe(contactAr);
+    const { container } = render(await ContactUsPage({ params: Promise.resolve({ locale: "ar" }) }), { wrapper: ({ children }) => <div lang="ar" dir="rtl">{children}</div> });
 
-    render(await ContactUsPage({ params: Promise.resolve({ locale: "ar" }) }));
-
+    expect(container.querySelector('[lang="ar"][dir="rtl"]')).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: t.title, level: 1 })).toBeInTheDocument();
-    expect(screen.getByText(t.guide)).toBeInTheDocument();
-    expect(screen.getByText(t.details[0].label)).toBeInTheDocument();
-    expect(screen.getByText(t.details[0].value)).toBeInTheDocument();
+    expect(screen.getByText(t.introFirst)).toBeInTheDocument();
+    expect(screen.getByText(t.addressLineOne)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: t.faqs })).toHaveAttribute("href", "/ar/faq");
+    expect(screen.getByRole("button", { name: t.zoomIn })).toBeInTheDocument();
+  });
+
+  it("takes each page title and description from the editable JSON", async () => {
+    expect(await generateMetadata({ params: Promise.resolve({ locale: "en" }) })).toMatchObject({
+      title: `${contactEn.title} | ${contactEn.fortName}`,
+      description: contactEn.introFirst
+    });
+    expect(await generateMetadata({ params: Promise.resolve({ locale: "ar" }) })).toMatchObject({
+      title: `${contactAr.title} | ${contactAr.fortName}`,
+      description: contactAr.introFirst
+    });
   });
 });

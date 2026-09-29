@@ -1,0 +1,31 @@
+{
+  "tickerItems": ["DUBAI FREE PORT EXHIBITION UNTIL 29TH JANUARY", "OPEN TODAY: 10:30 AM – 6 PM", "MORE EVENTS ON SUNDAY", "DUBAI FREE PORT"],
+  "heroImageAlt": "Visitor painting a Dubai Free Port exhibition mural",
+  "heroEyebrow": "Welcome to",
+  "heroDate": "Al Fahidi Fort",
+  "heroDescription": "Explore remarkable collections, authentic artefacts and historic spaces that bring nearly 250 years of Dubai's history to life.",
+  "heroTitle": "Discover the Museum",
+  "learnMore": "Learn more",
+  "socialHandle": "@alfahidifort",
+  "socialLabel": "Find us on social media",
+  "discoverTitle": "Discover the Museum",
+  "discoverDescription": "Explore remarkable collections, authentic artefacts and historic spaces that bring nearly 250 years of Dubai's history to life.",
+  "landmarkTitle": "A Landmark Across the Ages",
+  "landmarkSubtitle": "Where Dubai's story begins.",
+  "landmarkDescription": "Discover the story of Al Fahidi Fort, from its construction in 1787 to its many roles as a defensive stronghold, seat of governance and Dubai's first museum. Explore how the Fort evolved alongside the city while remaining at the heart of its history.",
+  "stories": [
+    { "title": "Memories of Al Fahidi Fort", "subtitle": "The people who brought the Fort to life.", "description": "Step into the lives of those who once passed through these walls. Through personal stories and immersive interpretation, discover the people, moments and memories that shaped Al Fahidi Fort across generations.", "imageAlt": "Historic scene representing the memories of Al Fahidi Fort" },
+    { "title": "Defence Fortifications", "subtitle": "A wider story of protection and resilience.", "description": "Discover how Al Fahidi Fort connects to a wider network of forts and watchtowers across the Emirates.", "imageAlt": "Historic Dubai fishing village scene" },
+    { "title": "Islamic Arms and Armour", "subtitle": "Centuries of craftsmanship.", "description": "Explore one of the region's most significant collections of Islamic arms and armour.", "imageAlt": "Traditional architectural material" }
+  ],
+  "exhibition": "Exhibition",
+  "oldestTitle": "Dubai's Oldest Standing Historical Landmark",
+  "oldestDescription": "Built in 1787, the Fort has witnessed nearly 250 years of Dubai's history.",
+  "artefactTitle": "The Museum's Greatest Artefact",
+  "artefactDescription": "The Fort is more than the setting for the museum. It is its most significant artefact, preserving the spaces where history unfolded.",
+  "guideTour": "Guide Tour",
+  "collectionsTitle": "Authentic Collections",
+  "collectionsDescription": "Discover carefully preserved collections that reveal stories of defence, craftsmanship, leadership and everyday life.",
+  "sharedMemoryTitle": "A Place of Shared Memory",
+  "sharedMemoryDescription": "For generations, Al Fahidi Fort has connected people with Dubai's heritage through shared experiences, personal memories and lasting traditions."
+}
