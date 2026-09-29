@@ -1,9 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import PlanYourVisitPage from "@/app/[locale]/plan-your-visit/page";
+import PlanYourVisitPage, { generateMetadata } from "@/app/[locale]/plan-your-visit/page";
 import { getTranslations } from "@/lib/i18n/translations";
 
 describe("PlanYourVisitPage", () => {
+  it.each(["en", "ar"] as const)("gives the %s page its own title and a descriptive FAQ link", async (locale) => {
+    const t = getTranslations(locale).planVisit;
+    expect(await generateMetadata({ params: Promise.resolve({ locale }) })).toMatchObject({ title: t.title });
+
+    render(await PlanYourVisitPage({ params: Promise.resolve({ locale }) }));
+    expect(screen.getByRole("link", { name: `${t.clickHere}: ${t.faqs}` })).toHaveAttribute("href", `/${locale}/faq`);
+  });
+
   it.each(["en", "ar"] as const)("renders %s visit details and usable links", async (locale) => {
     const t = getTranslations(locale).planVisit;
     render(await PlanYourVisitPage({ params: Promise.resolve({ locale }) }));

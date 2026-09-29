@@ -1,4 +1,5 @@
-import type { Locale } from "@/lib/content/site-content";
+import { notFound } from "next/navigation";
+import { isLocale, type Locale } from "@/lib/content/site-content";
 import ar from "@/content/common/ar.json";
 import en from "@/content/common/en.json";
 import contactAr from "@/content/contact/ar.json";
@@ -20,5 +21,10 @@ export const translations = {
 export type HomeSequenceTranslation = typeof homeEn;
 
 export function getTranslations(locale: Locale) {
+  // Route params are untrusted input; an unknown locale must 404 rather than throw.
+  if (!isLocale(locale)) {
+    notFound();
+  }
+
   return translations[locale];
 }

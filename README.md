@@ -43,8 +43,9 @@ Docker Swarm service  alfahidi-fort_web  (1 replica, manager node)
   |  container port 3000
   v
 Next.js 16 standalone server (node apps/web/server.js)
-  |-- App Router pages  /[locale], /[locale]/faq, /[locale]/contact-us
-  |-- Route Handlers    /api/home-sequence, /api/landing  (mock data)
+  |-- Proxy             unknown first path segments -> branded 404 (src/proxy.ts)
+  |-- App Router pages  /[locale], /[locale]/experience, /[locale]/plan-your-visit, /[locale]/faq, /[locale]/contact-us
+  |-- Metadata routes   /robots.txt, /sitemap.xml, /icon.svg, /apple-icon.png, /favicon.ico
   |-- Image optimizer   /_next/image (AVIF / WebP, 1 year cache TTL)
   +-- Static assets     /assets/*  (immutable, 1 year cache)
 ```
@@ -67,11 +68,11 @@ Rendering model: pages are statically generated for both locales at build time (
 | Framework       | Next.js 16.2 (App Router)                                                   | Standalone output, Webpack dev server (`next dev --webpack`).                                        |
 | UI              | React 19.2, TypeScript 5.9 (strict)                                         | `noUncheckedIndexedAccess` is enabled.                                                               |
 | Styling         | Tailwind CSS 3.4, PostCSS, Autoprefixer                                     | Custom palette (`ink`, `smoke`, `sand`, `copper`, `pearl`, `steel`) and `max-w-experience` (1368px). |
-| Fonts           | Cormorant Garamond, Inter (next/font), 29LT Azer (Google Fonts CSS)         | 29LT Azer is fetched at runtime from Google Fonts for Arabic.                                        |
+| Fonts           | Noto Sans, Noto Sans Arabic (next/font, self-hosted)                        | Downloaded at build time; no runtime request to Google.                                              |
 | Animation       | GSAP 3 + ScrollTrigger, @gsap/react, Lenis                                  | Loaded on demand from `src/animations`.                                                              |
 | Icons           | lucide-react                                                                | Tree-shaken via `optimizePackageImports`.                                                            |
 | Images          | next/image with sharp 0.35                                                  | AVIF and WebP output, long cache TTL.                                                                |
-| Utilities       | clsx, tailwind-merge                                                        | `cn()` helper in `src/components/ui/cn.ts`.                                                          |
+| Security        | CSP and security headers in `next.config.ts`, locale proxy, error boundaries | See the security notes in `deployment/README.md`.                                                    |
 | Testing         | Vitest 4, Testing Library, jsdom, v8 coverage                               | 95 percent thresholds on the covered files.                                                          |
 | Formatting      | Prettier 3, EditorConfig                                                    | 2-space indent, LF line endings.                                                                     |
 | Containers      | Docker multi-stage build, Docker Compose (local), Docker Swarm (production) | See [Deployment](#deployment).                                                                       |
@@ -83,20 +84,18 @@ Rendering model: pages are statically generated for both locales at build time (
 +-- apps/web/                      Next.js application (workspace @alfahidi/web)
 |   +-- public/assets/             Static images: home/, sequence/ (16 frames), faq/, contact/
 |   +-- src/
-|   |   +-- app/                   App Router: layouts, [locale] pages, api route handlers
-|   |   +-- animations/            GSAP / Lenis setup and reusable scroll animation helpers
+|   |   +-- app/                   App Router: layouts, [locale] pages, error/404 pages, sitemap, robots, icons
+|   |   +-- animations/            GSAP / Lenis setup (gsap.config.ts, scroll.manager.ts)
 |   |   +-- components/
-|   |   |   +-- chrome/            Header, Footer, brand SVG assets, social rail, marquee
-|   |   |   +-- sequence/          HomeSequenceExperience (live home page)
+|   |   |   +-- chrome/            Header, Footer, brand SVG assets and path data
+|   |   |   +-- sequence/          HomeSequenceExperience (live home page), AnnouncementTicker
+|   |   |   +-- errors/            ErrorScreen shared by the 404 and error pages
 |   |   |   +-- faq/               FaqAccordion
 |   |   |   +-- runtime/           BrowserEventRejectionGuard
-|   |   |   +-- ui/                cn() class helper
-|   |   |   +-- Story, effects, landing, sections, reference-home   (legacy, see Known Gaps)
-|   |   +-- config/site.ts         Site name, description, locales
-|   |   +-- data/                  Mock payloads served by /api routes
 |   |   +-- lib/
 |   |   |   +-- i18n/              en.ts, ar.ts, getTranslations()
-|   |   |   +-- content/           Locale type guard and legacy home content
+|   |   |   +-- content/           Locale list and type guard
+|   |   |   +-- seo/               Page metadata, canonical and hreflang helpers
 |   |   |   +-- routing/           publicAsset() base-path helper
 |   |   |   +-- scroll/            SmoothScrollProvider, useReducedMotion
 |   |   +-- styles/globals.css     Tailwind layers and global rules
@@ -130,8 +129,9 @@ Live code paths, in the order a request touches them:
 - `src/app/[locale]/contact-us/page.tsx`: contact hero, map link to Google Maps, opening hours and contact details.
 - `src/lib/i18n/`: all copy for both locales. Add or change text here.
 - `src/lib/routing/public-asset.ts`: prefixes `/assets/...` URLs with the configured base path. Use it for every static asset reference.
-- `src/animations/`: `gsap.config.ts` (plugin registration), `scroll.manager.ts` (Lenis controller and `animateSection` helper), plus fade, parallax, zoom, image-sequence and timeline helpers.
-- `src/app/api/home-sequence/route.ts` and `src/app/api/landing/route.ts`: return mock JSON from `src/data`. Not consumed by any page today.
+- `src/animations/`: `gsap.config.ts` (plugin registration) and `scroll.manager.ts` (Lenis controller and `animateSection` helper).
+- `src/app/global-not-found.tsx`, `src/app/[locale]/error.tsx`, `src/app/global-error.tsx`: branded bilingual 404 and error pages. `deployment/error-pages/` holds the matching static pages Nginx serves for 502/503/504.
+- `src/proxy.ts`: sends any URL whose first segment is not `en`/`ar` to the 404 page before routing.
 
 ## Prerequisites
 
@@ -191,7 +191,7 @@ All variables are optional for local development. Copy `.env.example` to `.env` 
 | `NEXT_PUBLIC_BASE_PATH` | empty                                                                     | Build-time Next.js `basePath`. Set by the Dockerfile from `APP_BASE_PATH`.                                         |
 | `APP_BASE_PATH`         | empty locally, `/alfahidifort` in production                              | Path prefix the site is served under. Read by `next.config.ts`, the Dockerfile health check and the deploy script. |
 | `WEB_PORT`              | `3111` (compose)                                                          | Host port mapped to the container's port 3000.                                                                     |
-| `NODE_IMAGE`            | `node:24-alpine`                                                          | Base image for the Docker build.                                                                                   |
+| `NODE_IMAGE`            | digest-pinned `node:24-alpine` (see `Dockerfile`)                         | Base image override for the Docker build. Leave unset in production.                                                                                   |
 
 The base path is baked in at build time. Changing it requires a rebuild.
 
@@ -423,9 +423,7 @@ The site is served under `/alfahidifort` in production but at the root locally. 
 
 Items worth knowing before you change things:
 
-- Unused dependencies: `three`, `@react-three/fiber`, `@react-three/drei`, `framer-motion` and `zustand` are declared in `apps/web/package.json` but not imported anywhere. They can be removed to shrink installs.
-- Legacy components: `components/Story`, `components/effects`, `components/landing`, `components/sections`, `hooks/`, the home content in `lib/content/site-content.ts` and `data/landing.ts` are not reachable from any route. They are earlier iterations of the home page kept for reference. `components/reference-home` is used only for its SVG path data; the PNGs in that folder duplicate `public/assets/home`.
-- Mock APIs: `/api/home-sequence` and `/api/landing` return static JSON and nothing calls them yet. They mark where a CMS could be wired in.
+- Removed in the release-1 clean-up: unused dependencies (`three`, `@react-three/*`, `framer-motion`, `zustand`, `clsx`, `tailwind-merge`), legacy components (`Story`, `effects`, `landing`, `sections`, `reference-home`, `hooks/`), mock API routes and unused image/SVG assets. Recover them from git history if needed.
 - Port mismatch: `.env.example` lists port 3000, the dev script uses 3001 and Docker Compose publishes 3111. Nothing breaks, but do not rely on the example file for the dev URL.
 - No lint config: `npm run lint` is a no-op because no workspace defines a `lint` script. Adding ESLint with `eslint-config-next` is recommended.
 - No CI: typecheck, tests and build are run manually. A pipeline that runs the three commands in [Testing and Quality Checks](#testing-and-quality-checks) on every pull request would catch regressions earlier.

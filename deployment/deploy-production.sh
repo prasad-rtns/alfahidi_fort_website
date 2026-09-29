@@ -25,7 +25,8 @@ WARM_CACHE_LIMIT="${WARM_CACHE_LIMIT:-80}"
 IMAGE_REPOSITORY="${IMAGE_REPOSITORY:-alfahidi-fort-website}"
 IMAGE_TAG="${IMAGE_TAG:-$(date +%Y%m%d%H%M%S)}"
 IMAGE_NAME="${IMAGE_NAME:-${IMAGE_REPOSITORY}:${IMAGE_TAG}}"
-NODE_IMAGE="${NODE_IMAGE:-node:24-alpine}"
+# Empty means "use the digest-pinned default from the Dockerfile".
+NODE_IMAGE="${NODE_IMAGE:-}"
 EXPORT_DIR="${EXPORT_DIR:-$PROJECT_DIR/deployment/.artifacts}"
 
 usage() {
@@ -42,11 +43,11 @@ Options:
   --stack                  Docker stack name. Default: alfahidi-fort
   --service                Service name inside the stack. Default: web
   --image                  Full image name to build and deploy. Default: alfahidi-fort-website:<timestamp>
-  --node-image             Docker base image used for build/runtime. Default: node:24-alpine
+  --node-image             Docker base image override. Default: the digest-pinned image in the Dockerfile
   --replicas               Swarm replicas. Default: 1
-  --site-url               NEXT_PUBLIC_SITE_URL value. Default: http://<server-host><base-path>
+  --site-url               Public URL incl. base path, e.g. https://www.example.ae/alfahidifort. Default: http://<server-host><base-path>
   --base-path              Application base path. Default: /alfahidifort
-  --remote-dir             Remote temporary deployment folder. Default: /tmp/alfahidi-fort-website
+  --remote-dir             Remote deployment folder (relative paths resolve in the SSH user's home). Default: /tmp/alfahidi-fort-website
   --placement-constraint   Swarm placement constraint. Default: node.role == manager
   --rollout-timeout        Seconds to wait for Swarm tasks and HTTP health. Default: 240
   --warm-cache             Warm page and image cache after deployment. Default: true
@@ -153,6 +154,34 @@ normalize_base_path() {
 
 APP_BASE_PATH="$(normalize_base_path "$APP_BASE_PATH")"
 
+# Values below are interpolated into a remote shell command and a YAML file; reject anything that
+# could break out of the quoting.
+assert_safe_value() {
+  local name="$1"
+  local value="$2"
+  local pattern="$3"
+  if ! [[ "$value" =~ $pattern ]]; then
+    echo "Invalid $name: '$value'"
+    exit 1
+  fi
+}
+
+SAFE_PATH_PATTERN='^[A-Za-z0-9._/-]*$'
+SAFE_NAME_PATTERN='^[A-Za-z0-9._-]+$'
+SAFE_NUMBER_PATTERN='^[0-9]+$'
+assert_safe_value "remote dir" "$REMOTE_DIR" "$SAFE_PATH_PATTERN"
+assert_safe_value "base path" "$APP_BASE_PATH" "$SAFE_PATH_PATTERN"
+assert_safe_value "stack name" "$STACK_NAME" "$SAFE_NAME_PATTERN"
+assert_safe_value "service name" "$SERVICE_NAME" "$SAFE_NAME_PATTERN"
+assert_safe_value "published port" "$PUBLISHED_PORT" "$SAFE_NUMBER_PATTERN"
+assert_safe_value "container port" "$CONTAINER_PORT" "$SAFE_NUMBER_PATTERN"
+assert_safe_value "replicas" "$REPLICAS" "$SAFE_NUMBER_PATTERN"
+assert_safe_value "rollout timeout" "$ROLLOUT_TIMEOUT" "$SAFE_NUMBER_PATTERN"
+assert_safe_value "warm cache limit" "$WARM_CACHE_LIMIT" "$SAFE_NUMBER_PATTERN"
+assert_safe_value "warm cache flag" "$WARM_CACHE" '^(true|false)$'
+assert_safe_value "image name" "$IMAGE_NAME" '^[A-Za-z0-9._/:@-]+$'
+assert_safe_value "placement constraint" "$PLACEMENT_CONSTRAINT" '^[A-Za-z0-9._=! -]+$'
+
 if [ -z "$REMOTE_HOST" ]; then
   echo "Missing required server host. Pass --host <ip> or set SERVER_HOST."
   usage
@@ -161,7 +190,9 @@ fi
 
 if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
   NEXT_PUBLIC_SITE_URL="http://${REMOTE_HOST}${APP_BASE_PATH}"
+  echo "Warning: --site-url not set; using $NEXT_PUBLIC_SITE_URL. Production should use the public https:// URL."
 fi
+assert_safe_value "site URL" "$NEXT_PUBLIC_SITE_URL" '^https?://[A-Za-z0-9.:/_-]+$'
 
 command -v docker >/dev/null 2>&1 || {
   echo "docker is required locally."
@@ -214,8 +245,21 @@ services:
         published: $PUBLISHED_PORT
         protocol: tcp
         mode: ingress
+    read_only: true
+    cap_drop:
+      - ALL
+    volumes:
+      - type: tmpfs
+        target: /tmp
+      - type: volume
+        source: next-cache
+        target: /app/apps/web/.next/cache
     deploy:
       replicas: $REPLICAS
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1G
       placement:
         constraints:
           - "$PLACEMENT_CONSTRAINT"
@@ -231,6 +275,9 @@ services:
         delay: 5s
         max_attempts: 3
         window: 60s
+
+volumes:
+  next-cache:
 EOF
 
 echo "Deployment target:"
@@ -238,7 +285,7 @@ echo "  Host:       $REMOTE_USER@$REMOTE_HOST"
 echo "  Stack:      $STACK_NAME"
 echo "  Service:    ${STACK_NAME}_${SERVICE_NAME}"
 echo "  Image:      $IMAGE_NAME"
-echo "  Node image: $NODE_IMAGE"
+echo "  Node image: ${NODE_IMAGE:-<Dockerfile default>}"
 echo "  Swarm port: $PUBLISHED_PORT -> $CONTAINER_PORT"
 echo "  Base path:  $APP_BASE_PATH"
 echo "  Site URL:   $NEXT_PUBLIC_SITE_URL"
@@ -250,15 +297,26 @@ echo ""
 echo "Building Docker image locally..."
 # Keep the Docker build arg slashless so Git Bash/MSYS does not rewrite it as a Windows path.
 DOCKER_BUILD_APP_BASE_PATH="${APP_BASE_PATH#/}"
-docker build --build-arg NODE_IMAGE="$NODE_IMAGE" --build-arg APP_BASE_PATH="$DOCKER_BUILD_APP_BASE_PATH" -t "$IMAGE_NAME" "$PROJECT_DIR"
+build_args=(--build-arg APP_BASE_PATH="$DOCKER_BUILD_APP_BASE_PATH" --build-arg NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_SITE_URL")
+if [ -n "$NODE_IMAGE" ]; then
+  build_args+=(--build-arg NODE_IMAGE="$NODE_IMAGE")
+fi
+docker build "${build_args[@]}" -t "$IMAGE_NAME" "$PROJECT_DIR"
 
 echo ""
 echo "Saving image to $image_tar_path..."
 docker save "$IMAGE_NAME" | gzip -c > "$image_tar_path"
 
+if command -v sha256sum >/dev/null 2>&1; then
+  image_sha256="$(sha256sum "$image_tar_path" | awk '{print $1}')"
+else
+  image_sha256="$(shasum -a 256 "$image_tar_path" | awk '{print $1}')"
+fi
+echo "Image archive SHA-256: $image_sha256"
+
 echo ""
 echo "Preparing remote deployment folder..."
-ssh "$REMOTE_USER@$REMOTE_HOST" "mkdir -p '$REMOTE_IMAGE_DIR'"
+ssh "$REMOTE_USER@$REMOTE_HOST" "mkdir -p '$REMOTE_IMAGE_DIR' && { chmod 700 '$REMOTE_DIR' 2>/dev/null || true; }"
 
 echo "Copying image and stack file to remote host..."
 scp "$image_tar_path" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_IMAGE_DIR/"
@@ -266,7 +324,7 @@ scp "$stack_file_path" "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/docker-stack.yml"
 
 echo ""
 echo "Deploying on remote Swarm manager..."
-ssh "$REMOTE_USER@$REMOTE_HOST" "REMOTE_DIR='$REMOTE_DIR' REMOTE_IMAGE_DIR='$REMOTE_IMAGE_DIR' STACK_NAME='$STACK_NAME' SERVICE_NAME='$SERVICE_NAME' IMAGE_TAR='$image_tar_name' PUBLISHED_PORT='$PUBLISHED_PORT' CONTAINER_PORT='$CONTAINER_PORT' APP_BASE_PATH='$APP_BASE_PATH' REPLICAS='$REPLICAS' ROLLOUT_TIMEOUT='$ROLLOUT_TIMEOUT' WARM_CACHE='$WARM_CACHE' WARM_CACHE_LIMIT='$WARM_CACHE_LIMIT' bash -s" <<'EOF'
+ssh "$REMOTE_USER@$REMOTE_HOST" "REMOTE_DIR='$REMOTE_DIR' REMOTE_IMAGE_DIR='$REMOTE_IMAGE_DIR' STACK_NAME='$STACK_NAME' SERVICE_NAME='$SERVICE_NAME' IMAGE_TAR='$image_tar_name' IMAGE_SHA256='$image_sha256' PUBLISHED_PORT='$PUBLISHED_PORT' CONTAINER_PORT='$CONTAINER_PORT' APP_BASE_PATH='$APP_BASE_PATH' REPLICAS='$REPLICAS' ROLLOUT_TIMEOUT='$ROLLOUT_TIMEOUT' WARM_CACHE='$WARM_CACHE' WARM_CACHE_LIMIT='$WARM_CACHE_LIMIT' bash -s" <<'EOF'
 set -euo pipefail
 
 DOCKER="docker"
@@ -285,9 +343,25 @@ if ! $DOCKER info --format '{{.Swarm.LocalNodeState}}' | grep -qi active; then
   exit 1
 fi
 
+# Resolve relative folders against the SSH user's home before changing directory, so the image
+# path below still points at the uploaded archive.
+case "$REMOTE_DIR" in /*) ;; *) REMOTE_DIR="$HOME/$REMOTE_DIR" ;; esac
+case "$REMOTE_IMAGE_DIR" in /*) ;; *) REMOTE_IMAGE_DIR="$HOME/$REMOTE_IMAGE_DIR" ;; esac
+
 cd "$REMOTE_DIR"
 
 full_service="${STACK_NAME}_${SERVICE_NAME}"
+
+echo "Verifying image archive checksum..."
+if command -v sha256sum >/dev/null 2>&1; then
+  actual_sha256="$(sha256sum "$REMOTE_IMAGE_DIR/$IMAGE_TAR" | awk '{print $1}')"
+else
+  actual_sha256="$(shasum -a 256 "$REMOTE_IMAGE_DIR/$IMAGE_TAR" | awk '{print $1}')"
+fi
+if [ "$actual_sha256" != "$IMAGE_SHA256" ]; then
+  echo "Checksum mismatch for $IMAGE_TAR (expected $IMAGE_SHA256, got $actual_sha256). Aborting."
+  exit 1
+fi
 
 echo "Loading image: $REMOTE_IMAGE_DIR/$IMAGE_TAR"
 gzip -dc "$REMOTE_IMAGE_DIR/$IMAGE_TAR" | $DOCKER load
@@ -383,7 +457,7 @@ if [ "$WARM_CACHE" = "true" ]; then
   image_cache_file="$(mktemp)"
   trap 'rm -f "$html_cache_file" "$image_cache_file"' EXIT
 
-  for page_path in "/en" "/en/faq" "/en/contact-us"; do
+  for page_path in "/en" "/en/experience" "/en/plan-your-visit" "/en/faq" "/en/contact-us" "/ar" "/ar/experience" "/ar/plan-your-visit" "/ar/faq" "/ar/contact-us"; do
     page_url="${base_url}${page_path}"
     echo "  Page: $page_url"
     if curl -fsS -H "Accept: text/html" "$page_url" >> "$html_cache_file"; then

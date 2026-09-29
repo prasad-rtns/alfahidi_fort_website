@@ -5,9 +5,29 @@ services:
       dockerfile: Dockerfile
       args:
         APP_BASE_PATH: ${APP_BASE_PATH:-}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3111}
     environment:
       APP_BASE_PATH: ${APP_BASE_PATH:-}
       NEXT_PUBLIC_BASE_PATH: ${APP_BASE_PATH:-}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3111}
     ports:
-      - "${WEB_PORT:-3111}:3000"
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-3111}:3000"
+    # Runtime hardening: immutable filesystem except the optimised-image cache and /tmp.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    volumes:
+      - next-cache:/app/apps/web/.next/cache
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1g
+          pids: 256
+
+volumes:
+  next-cache:

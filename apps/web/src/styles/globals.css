@@ -444,3 +444,34 @@ html[dir="rtl"] .plan-visit-page [data-plan-marker][data-reveal-ready="true"]:no
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Accessibility: skip link (WCAG 2.4.1) — hidden until it receives keyboard focus. */
+.skip-link {
+  position: fixed;
+  inset-inline-start: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #243646;
+  font-weight: 600;
+  outline: 2px solid #243646;
+  outline-offset: 2px;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* Accessibility: the home ticker pauses on hover, keyboard focus, or via its pause button (WCAG 2.2.2). */
+[data-ticker]:hover [data-ticker-track],
+[data-ticker]:focus-within [data-ticker-track],
+[data-ticker][data-paused="true"] [data-ticker-track] {
+  animation-play-state: paused;
+}

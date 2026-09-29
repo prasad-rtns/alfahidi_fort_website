@@ -1,32 +1,45 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ExperiencePopImage } from "@/components/experience/experience-pop-image";
 import { getTranslations } from "@/lib/i18n/translations";
 import { publicAsset } from "@/lib/routing/public-asset";
 import type { Locale } from "@/lib/content/site-content";
+import { buildPageMetadata, summarize } from "@/lib/seo/page-metadata";
 
-const galleryImages = ["b252e.png", "bc861.webp", "2cf0b.webp", "c0de3.webp"] as const;
+const galleryImages = ["b252e.webp", "bc861.webp", "2cf0b.webp", "c0de3.webp"] as const;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const translations = getTranslations(locale);
+  return buildPageMetadata({
+    locale,
+    pagePath: "/experience",
+    title: translations.header.experience,
+    description: summarize(translations.experience.aboutParagraphs[0] ?? translations.meta.description)
+  });
+}
 
 export default async function ExperiencePage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const t = getTranslations(locale).experience;
 
   return (
-    <main className="experience-page bg-white pt-24 text-[#3e332e]">
+    <main id="main-content" tabIndex={-1} className="experience-page bg-white pt-24 text-[#3e332e]">
       <section className="mx-auto grid w-full max-w-[1440px] items-center gap-8 px-6 py-8 md:px-9 lg:grid-cols-2 lg:gap-16" aria-labelledby="about-fort-title">
         <div className="max-w-[640px]">
           <h1 id="about-fort-title" className="text-[clamp(2.25rem,3vw,2.625rem)] font-normal leading-[1.24] text-black">{t.aboutTitle}</h1>
           {t.aboutParagraphs.map((paragraph) => <p key={paragraph} className="mt-5 text-lg leading-[1.45]">{paragraph}</p>)}
         </div>
         <div className="w-full lg:flex lg:justify-end">
-          <ExperiencePopImage src={publicAsset("/assets/experience/b3c40.png")} alt={t.aboutImageAlt} priority />
+          <ExperiencePopImage src={publicAsset("/assets/experience/b3c40.webp")} alt={t.aboutImageAlt} priority />
         </div>
       </section>
 
       <section className="bg-[#ecebea]" aria-labelledby="about-experience-title">
         <div className="mx-auto grid w-full max-w-[1440px] items-center gap-8 px-6 py-8 md:px-9 lg:grid-cols-2 lg:gap-16">
           <div className="w-full lg:justify-self-start">
-            <ExperiencePopImage src={publicAsset("/assets/experience/cea40.png")} alt={t.experienceImageAlt} />
+            <ExperiencePopImage src={publicAsset("/assets/experience/cea40.webp")} alt={t.experienceImageAlt} />
           </div>
           <div className="max-w-[640px]">
             <h2 id="about-experience-title" className="text-[clamp(2.25rem,3vw,2.625rem)] font-normal leading-[1.24] text-black">{t.experienceTitle}</h2>

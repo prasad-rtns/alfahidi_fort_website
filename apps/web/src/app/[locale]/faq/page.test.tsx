@@ -1,9 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import FaqPage from "@/app/[locale]/faq/page";
+import FaqPage, { generateMetadata } from "@/app/[locale]/faq/page";
 import { getTranslations } from "@/lib/i18n/translations";
 
 describe("FaqPage", () => {
+  it.each(["en", "ar"] as const)("gives the %s FAQ page its own localized title", async (locale) => {
+    const t = getTranslations(locale).faq;
+    expect(await generateMetadata({ params: Promise.resolve({ locale }) })).toMatchObject({
+      title: t.title,
+      alternates: { canonical: `http://localhost:3000/${locale}/faq` }
+    });
+  });
+
   it("renders the English FAQ page from translations", async () => {
     const t = getTranslations("en").faq;
 

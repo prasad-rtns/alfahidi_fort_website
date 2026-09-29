@@ -120,24 +120,31 @@ First check Docker Hub/DNS from the local build machine:
 docker pull node:24-alpine
 ```
 
-If Docker Desktop has no Internet/DNS/proxy access but another Node Alpine image is already cached locally, use it temporarily. This is only a workaround while Docker Hub access is down:
+If Docker Desktop has no Internet/DNS/proxy access but another supported Node 24 Alpine image is already cached locally, use it temporarily. Do not fall back to Node 20 or older: they are end-of-life and no longer receive security fixes. This is only a workaround while Docker Hub access is down:
 
 ```bash
 docker images node
-bash ./deployment/deploy-production.sh --host 172.20.104.100 --node-image node:20-alpine
+bash ./deployment/deploy-production.sh --host 172.20.104.100 --node-image node:24-alpine
 ```
 
 Equivalent environment variable:
 
 ```bash
-NODE_IMAGE=node:20-alpine bash ./deployment/deploy-production.sh --host 172.20.104.100
+NODE_IMAGE=node:24-alpine bash ./deployment/deploy-production.sh --host 172.20.104.100
 ```
 
-After Docker Hub access is restored, return to the default:
+After Docker Hub access is restored, drop `--node-image` so the build uses the digest-pinned default from the `Dockerfile`:
 
 ```bash
-bash ./deployment/deploy-production.sh --host 172.20.104.100 --node-image node:24-alpine
+bash ./deployment/deploy-production.sh --host 172.20.104.100
 ```
+
+## Security notes
+
+- **HTTPS:** terminate TLS 1.2+ at the reverse proxy/WAF, redirect HTTP to HTTPS, and pass the public URL with `--site-url https://<domain><base-path>`. The app already sends `Strict-Transport-Security`, which browsers honour once the site is served over HTTPS.
+- **Base image:** the `Dockerfile` pins `node:24-alpine` by digest. To take Node/Alpine patches, run `docker pull node:24-alpine`, copy the new digest into the `NODE_IMAGE` default in the `Dockerfile`, and redeploy.
+- **Staging folder:** image archives are copied to `/tmp/alfahidi-fort-website` on the server (restricted to the deploy user, mode 700) and their SHA-256 checksum is verified before `docker load`. Override with `--remote-dir`; relative paths resolve in the SSH user's home.
+- **Runtime:** the service runs with a read-only root filesystem, all Linux capabilities dropped and CPU/memory limits. Only `/tmp` (tmpfs) and the `next-cache` volume (optimised images) are writable.
 
 ### Files That Use This Setting
 
@@ -213,6 +220,23 @@ location /alfahidifort/ {
     proxy_send_timeout 60s;
     proxy_read_timeout 60s;
 }
+```
+
+### Branded error pages (502 / 503 / 504)
+
+When the app container is down, restarting or too slow, Nginx answers with its own plain error page. `deployment/error-pages/` contains self-contained, bilingual Al Fahidi Fort pages for 404, 500, 502, 503 and 504 (inline CSS and emblem, no external requests), and `nginx-error-pages.conf` shows how to wire them in:
+
+```bash
+sudo mkdir -p /var/www/alfahidifort-errors
+sudo cp deployment/error-pages/*.html /var/www/alfahidifort-errors/
+```
+
+Add the `error_page` lines from `nginx-error-pages.conf` inside `location /alfahidifort/ { ... }` and the `location ^~ /alfahidifort-errors/` block next to it. The app keeps serving its own branded 404 and 500 pages.
+
+If the site runs under a different base path, regenerate the pages so their links point to the right home page:
+
+```bash
+node deployment/error-pages/generate.mjs --base-path /alfahidifort
 ```
 
 Validate and reload Nginx:

@@ -1,4 +1,4 @@
-import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
+import svgPaths from "@/components/chrome/brand-svg-paths";
 
 type BrandMarkProps = {
   className?: string;

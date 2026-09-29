@@ -15,3 +15,15 @@ npm-debug.log
 ignore
 deployment/.artifacts
 Al Fahidi Fort_Website-Animation.mp4
+# Local tooling artefacts: browser profiles, screenshots, notes and editor/CI state
+.verify-*
+.chrome*
+/*.png
+prompt.txt
+.codex*
+.vscode
+.idea
+.github
+.claude
+**/*.tsbuildinfo
+**/.DS_Store

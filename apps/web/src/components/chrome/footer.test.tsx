@@ -11,6 +11,7 @@ describe("Footer", () => {
 
     expect(screen.getByText(t.stayConnected)).toBeInTheDocument();
     expect(screen.getByLabelText(t.email)).toHaveAttribute("placeholder", t.email);
+    expect(screen.getByLabelText(t.email)).toHaveAttribute("autocomplete", "email");
     expect(screen.getByRole("button", { name: t.subscribe })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: t.contactUs })).toHaveAttribute("href", "/en/contact-us");
     expect(screen.getByRole("link", { name: t.faqs })).toHaveAttribute("href", "/en/faq");
