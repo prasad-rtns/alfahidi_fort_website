@@ -13,8 +13,8 @@ const config: Config = {
         steel: "#66727e"
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
-        body: ["var(--font-body)", "Arial", "sans-serif"]
+        display: ["var(--font-home-latin)", "Arial", "sans-serif"],
+        body: ["var(--font-home-latin)", "Arial", "sans-serif"]
       },
       maxWidth: {
         experience: "1368px"

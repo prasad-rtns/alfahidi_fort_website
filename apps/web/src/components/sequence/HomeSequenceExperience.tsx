@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useRef, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Facebook, Instagram, Menu, Search, Twitter, X } from "lucide-react";
-import svgPaths from "@/components/reference-home/svg-1qdr0cemfv";
+import { Facebook, Instagram, Twitter } from "lucide-react";
+import svgPaths from "@/components/chrome/brand-svg-paths";
 import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
+import { AnnouncementTicker } from "@/components/sequence/announcement-ticker";
 import { getTranslations, type HomeSequenceTranslation } from "@/lib/i18n/translations";
 import { publicAsset } from "@/lib/routing/public-asset";
 import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
@@ -25,14 +26,14 @@ const assets = {
   hero: publicAsset("/assets/home/8ab53a40f6f21db6e5a8469000a2cd38a9fe5cbe.png"),
   verticalLogo: publicAsset("/assets/home/c835b8583dd9faa532e167e3eea5630c2f4231fe.png"),
   marker: publicAsset("/assets/home/817cfed82c580c1797e98cd2899a66a237a596c0.png"),
-  fort: publicAsset("/assets/home/356eeb935f5a39de2e9ab67426a8bc8942bce0d9.png"),
-  origins: publicAsset("/assets/home/a54ffe563d6773bc2f60c942869ba6f6d13be927.png"),
-  fishing: publicAsset("/assets/home/a414256e0f2e38adbace65848e8d7ac41adebc32.png"),
-  architecture: publicAsset("/assets/home/48674090da258a61c791cd00ca04f0ab5eae5098.png"),
-  trade: publicAsset("/assets/home/d236e945a5044c14489b2e7ea53c5604cf70cc94.png"),
+  fort: publicAsset("/assets/home/356eeb935f5a39de2e9ab67426a8bc8942bce0d9.webp"),
+  origins: publicAsset("/assets/home/a54ffe563d6773bc2f60c942869ba6f6d13be927.webp"),
+  fishing: publicAsset("/assets/home/a414256e0f2e38adbace65848e8d7ac41adebc32.webp"),
+  architecture: publicAsset("/assets/home/48674090da258a61c791cd00ca04f0ab5eae5098.webp"),
+  trade: publicAsset("/assets/home/d236e945a5044c14489b2e7ea53c5604cf70cc94.webp"),
   conservation: publicAsset("/assets/home/e9323ff8ffb7ccb4f690c77098e1e1820215ab23.png"),
-  guidedObject: publicAsset("/assets/home/ca9b0d43c0a9a3e9707c0ffbdcb128a1d40e4f45.png"),
-  ceremonialStone: publicAsset("/assets/home/c7d7122132398baf8c2664cd0d16250039849475.png")
+  guidedObject: publicAsset("/assets/home/ca9b0d43c0a9a3e9707c0ffbdcb128a1d40e4f45.webp"),
+  ceremonialStone: publicAsset("/assets/home/c7d7122132398baf8c2664cd0d16250039849475.webp")
 };
 
 type SequenceCopy = HomeSequenceTranslation;
@@ -536,11 +537,9 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
     };
   }, [reducedMotion]);
 
-  const tickerText = useMemo(() => [...t.tickerItems, ...t.tickerItems].join("    "), [t.tickerItems]);
-
   return (
-    <main ref={rootRef} className="sequence-page overflow-hidden bg-[#eceff1] text-[#243646]">
-      <HeroSequence tickerText={tickerText} copy={t} />
+    <main ref={rootRef} id="main-content" tabIndex={-1} className="sequence-page overflow-hidden bg-[#eceff1] text-[#243646]">
+      <HeroSequence copy={t} a11y={getTranslations(locale).a11y} />
       <EditorialStories copy={t} />
       <DarkFeature copy={t} />
       <ClosingExhibitionBand copy={t} />
@@ -548,7 +547,7 @@ function AnimatedSequencePage({ locale }: { locale: Locale }) {
   );
 }
 
-function HeroSequence({ tickerText, copy }: { tickerText: string; copy: SequenceCopy }) {
+function HeroSequence({ copy, a11y }: { copy: SequenceCopy; a11y: { pauseTicker: string; playTicker: string } }) {
   const portalStyle = {
     "--portal-x": "31.8%",
     "--portal-y": "54.6%",
@@ -594,7 +593,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
         </p>
         <div data-hero-copy className="mt-3 flex flex-col items-start gap-3 opacity-0 md:flex-row md:items-end md:gap-4">
           <h1 className="whitespace-nowrap text-[clamp(1.55rem,6.4vw,3rem)] leading-none text-white/[0.04] [-webkit-text-stroke:1px_#d3d7da] md:text-[clamp(2rem,4.2vw,3rem)]">{copy.heroTitle}</h1>
-          <Link href="#explore" className="mb-1 rounded-full border border-[#d3d7da] px-3 py-[6px] text-[14px] leading-none text-[#d3d7da] transition hover:bg-[#d3d7da] hover:text-[#243646] md:mb-[0.3rem] md:px-4 md:text-[13px]">
+          <Link href="#explore" aria-label={`${copy.learnMore}: ${copy.heroTitle}`} className="mb-1 rounded-full border border-[#d3d7da] px-3 py-[6px] text-[14px] leading-none text-[#d3d7da] transition hover:bg-[#d3d7da] hover:text-[#243646] md:mb-[0.3rem] md:px-4 md:text-[13px]">
             {copy.learnMore}
           </Link>
         </div>
@@ -607,9 +606,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-30 bg-[#eceff1] px-3 py-3 md:px-[2.6vw] md:py-4">
-        <div className="overflow-hidden rounded-full bg-[#995d3e] text-white">
-          <p className="w-max animate-[landing-marquee_28s_linear_infinite] whitespace-pre px-3 py-2 text-[clamp(1rem,6vw,2.5rem)] leading-none">{tickerText}</p>
-        </div>
+        <AnnouncementTicker items={copy.tickerItems} pauseLabel={a11y.pauseTicker} playLabel={a11y.playTicker} />
       </div>
     </section>
   );
@@ -655,95 +652,6 @@ function FloatingMarkerIcon() {
       <path d={svgPaths.pbd94700} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.9" />
       <path d={svgPaths.p2ca31cf0} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.9" />
     </svg>
-  );
-}
-
-function AlFahidiFortEmblem({ isScrolled }: { isScrolled: boolean }) {
-  const clipId = `${useId().replace(/:/g, "")}-nav-emblem`;
-
-  return (
-    <span data-hero-guide-anchor className="relative grid h-[clamp(2.8rem,3.85vw,3.45rem)] w-[clamp(1.35rem,2.05vw,1.8rem)] shrink-0 place-items-center self-center">
-      <svg className={`block size-full transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`} fill="none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 36 59" aria-hidden="true">
-        <FortEmblemPaths clipId={clipId} />
-      </svg>
-    </span>
-  );
-}
-
-function HeroHeader() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const updateHeaderState = () => {
-      setIsScrolled(window.scrollY > 24);
-      setIsMenuOpen(false);
-    };
-
-    updateHeaderState();
-    window.addEventListener("scroll", updateHeaderState, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", updateHeaderState);
-    };
-  }, []);
-
-  const navLinks = [
-    { href: "#experience", label: "Experience" },
-    { href: "#whats-on", label: "What's on" },
-    { href: "#faq", label: "FAQ" },
-    { href: "#contact-us", label: "Contact Us" }
-  ];
-
-  return (
-    <header className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between gap-3 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:gap-5 md:px-[2.7vw] md:py-4 ${isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"}`}>
-      <div className="grid min-w-[118px] gap-0.5 leading-none md:min-w-[150px]">
-        <span className="font-display text-xl font-semibold md:text-3xl">حكومة دبي</span>
-        <span className="text-[10px] font-bold uppercase tracking-wide">Government of Dubai</span>
-      </div>
-
-      <nav className="hidden flex-1 items-center justify-center gap-[clamp(1rem,2.05vw,2.55rem)] text-[clamp(1rem,1.28vw,1.35rem)] font-semibold md:flex">
-        <Link href="#tickets" className="rounded-full border border-current px-7 py-1.5">
-          Book Tickets
-        </Link>
-        <span className="flex items-center gap-4">
-          <span>عربي</span>
-          <span className="h-6 w-px bg-current/40" />
-          <Search size={20} aria-hidden="true" />
-        </span>
-        <Link href="#experience">Experience</Link>
-        <AlFahidiFortEmblem isScrolled={isScrolled} />
-        <Link href="#whats-on">What's on</Link>
-        <Link href="#faq">FAQ</Link>
-        <Link href="#contact-us" className="underline underline-offset-4">
-          Contact Us
-        </Link>
-      </nav>
-
-      <div className="hidden min-w-[clamp(160px,18vw,300px)] text-right font-black leading-none tracking-normal text-[#d3d7da] md:block">
-        <span className={`block transition-[font-size] duration-300 ${isScrolled ? "text-[clamp(2.25rem,3.2vw,3.7rem)]" : "text-[clamp(2.35rem,4vw,4.25rem)]"}`}>حصن الفهيدي</span>
-        <span className={`mt-1 block text-[clamp(1rem,1.35vw,1.45rem)] font-semibold leading-none transition-opacity duration-300 ${isScrolled ? "opacity-100" : "opacity-0"}`}>Al Fahidi Fort</span>
-      </div>
-
-      <button type="button" className="inline-grid size-11 place-items-center rounded-full border border-current text-[#d3d7da] md:hidden" aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)}>
-        {isMenuOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
-      </button>
-
-      <div className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition md:hidden ${isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"}`}>
-        <Link href="#tickets" onClick={() => setIsMenuOpen(false)} className="rounded-full border border-current px-5 py-2 text-center">
-          Book Tickets
-        </Link>
-        {navLinks.map((link) => (
-          <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
-            {link.label}
-          </Link>
-        ))}
-        <div className="flex items-center justify-between py-2 text-base">
-          <span>عربي</span>
-          <Search size={20} aria-hidden="true" />
-        </div>
-      </div>
-    </header>
   );
 }
 
@@ -805,7 +713,7 @@ function FeaturedCeremonialCard({ copy }: { copy: SequenceCopy }) {
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.discoverTitle}</h2>
         <p className="max-w-[360px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.discoverDescription}</p>
-        <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
+        <Link href="#visit" aria-label={`${copy.learnMore}: ${copy.discoverTitle}`} className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
           {copy.learnMore}
         </Link>
       </div>
@@ -829,7 +737,7 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
         </div>
         <div className="grid content-start gap-3">
           <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.landmarkDescription}</p>
-          <Link href="#visit" className="w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
+          <Link href="#visit" aria-label={`${copy.learnMore}: ${copy.landmarkTitle}`} className="w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
             {copy.learnMore}
           </Link>
         </div>
@@ -854,7 +762,7 @@ function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: strin
         <h2 className="text-[clamp(1.2rem,3.2vw,3.2rem)] leading-[0.98] text-black">{story.title}</h2>
         <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{story.subtitle}</p>
         <p className="max-w-[430px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{story.description}</p>
-        <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
+        <Link href="#visit" aria-label={`${learnMore}: ${story.title}`} className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
           {learnMore}
         </Link>
       </div>
@@ -948,7 +856,7 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
             </div>
             <div className="grid gap-4">
               <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.collectionsDescription}</p>
-              <Link href="#explore" className="inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
+              <Link href="#explore" aria-label={`${copy.learnMore}: ${copy.collectionsTitle}`} className="inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
                 {copy.learnMore}
               </Link>
             </div>
@@ -965,42 +873,12 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
           <div>
             <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.sharedMemoryTitle}</h2>
             <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.sharedMemoryDescription}</p>
-            <Link href="#visit" className="mt-5 inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
+            <Link href="#visit" aria-label={`${copy.learnMore}: ${copy.sharedMemoryTitle}`} className="mt-5 inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
               {copy.learnMore}
             </Link>
           </div>
         </article>
       </div>
     </section>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer className="bg-[#bec3c7] px-5 py-8 text-black md:px-9 md:py-10">
-      <div className="mx-auto grid max-w-[1368px] grid-cols-1 items-start gap-8 md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-10">
-        <div>
-          <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] font-semibold uppercase">Stay connected</p>
-          <p className="mt-2 max-w-[420px] text-[clamp(0.58rem,1.25vw,0.875rem)] leading-snug">Receive email updates on our exhibitions, events, and more.</p>
-          <form className="mt-4 flex max-w-[520px] gap-1 rounded-full bg-white p-1" action="#">
-            <input className="min-w-0 flex-1 rounded-full bg-transparent px-3 py-1.5 text-[clamp(0.58rem,1.25vw,0.875rem)] outline-none" type="email" placeholder="Email" aria-label="Email" />
-            <button className="rounded-full bg-[#243646] px-3 py-1.5 text-[clamp(0.58rem,1.25vw,0.875rem)] font-semibold text-[#d3d7da]" type="submit">
-              Subscribe
-            </button>
-          </form>
-        </div>
-
-        <div className="text-center font-display text-[clamp(1.4rem,4vw,3rem)] font-black leading-none text-white">
-          DUBAI
-          <span className="block text-[clamp(0.5rem,1.25vw,0.875rem)] font-semibold tracking-normal">Culture & Arts</span>
-        </div>
-
-        <div className="text-left md:text-right">
-          <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] font-semibold uppercase">Contact us</p>
-          <p className="mt-2 text-[clamp(0.58rem,1.25vw,0.875rem)]">FAQs | Disclaimer | Terms of use | Privacy Policy</p>
-          <p className="mt-2 text-[clamp(0.58rem,1.25vw,0.875rem)]">Contact Us Tel. 80033222</p>
-        </div>
-      </div>
-    </footer>
   );
 }

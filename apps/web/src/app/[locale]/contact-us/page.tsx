@@ -7,11 +7,12 @@ import { getTranslations } from "@/lib/i18n/translations";
 import { emailContactUrl, httpsContactUrl, telephoneContactUrl } from "@/lib/routing/contact-links";
 import { publicAsset } from "@/lib/routing/public-asset";
 import type { Locale } from "@/lib/content/site-content";
+import { buildPageMetadata, summarize } from "@/lib/seo/page-metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = getTranslations(locale).contact;
-  return { title: `${t.title} | ${t.fortName}`, description: t.introFirst };
+  return buildPageMetadata({ locale, pagePath: "/contact-us", title: t.title, description: summarize(t.introFirst) });
 }
 
 export default async function ContactUsPage({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -25,7 +26,7 @@ export default async function ContactUsPage({ params }: { params: Promise<{ loca
   ] as const;
 
   return (
-    <main className="contact-page bg-white text-black">
+    <main id="main-content" tabIndex={-1} className="contact-page bg-white text-black">
       <section className="relative flex h-[390px] items-center justify-center overflow-hidden pt-20 text-white md:h-[416px]">
         <Image src={publicAsset("/assets/contact/contact-hero.png")} alt="" fill priority sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-[#243646]/65" />

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ContactMap } from "@/components/contact/contact-map";
@@ -6,6 +7,7 @@ import { getTranslations } from "@/lib/i18n/translations";
 import { httpsContactUrl } from "@/lib/routing/contact-links";
 import { publicAsset } from "@/lib/routing/public-asset";
 import type { Locale } from "@/lib/content/site-content";
+import { buildPageMetadata, summarize } from "@/lib/seo/page-metadata";
 
 const transportIcons = ["a5f08.svg", "3ae54.svg", "ea4ed.svg", "e21ab.svg"] as const;
 const guidelineIcons = ["d6809.svg", "9e925.svg", "a852d.svg", "1047e.svg", "3ca56.svg"] as const;
@@ -15,6 +17,12 @@ const focusClass = "focus-visible:outline focus-visible:outline-2 focus-visible:
 const darkButton = `inline-flex min-h-11 items-center justify-center rounded-full bg-[#243646] px-5 py-2.5 text-lg text-white ${focusClass}`;
 const whiteButton = `inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 py-2.5 text-lg text-[#3e332e] ${focusClass}`;
 
+export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = getTranslations(locale).planVisit;
+  return buildPageMetadata({ locale, pagePath: "/plan-your-visit", title: t.title, description: summarize(t.heroParagraphs[0] ?? t.title) });
+}
+
 export default async function PlanYourVisitPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const t = getTranslations(locale).planVisit;
@@ -22,7 +30,7 @@ export default async function PlanYourVisitPage({ params }: { params: Promise<{ 
   const directionsLabel = `${t.getDirections} (${t.opensInNewTab})`;
 
   return (
-    <main className="plan-visit-page bg-white text-[#3e332e]">
+    <main id="main-content" tabIndex={-1} className="plan-visit-page bg-white text-[#3e332e]">
       <section className="relative overflow-hidden bg-[#243646] text-white" aria-labelledby="plan-title">
         <Image src={publicAsset("/assets/plan-visit/5f63f.svg")} alt="" fill priority sizes="100vw" className="object-cover object-top" />
         <div className="relative mx-auto grid min-h-[604px] max-w-[1080px] items-center gap-10 px-6 pb-3 pt-36 md:px-9 lg:grid-cols-2 lg:gap-20">
@@ -78,13 +86,13 @@ export default async function PlanYourVisitPage({ params }: { params: Promise<{ 
             </ul>
           </div>
           <div className="relative mx-auto aspect-square w-full max-w-[458px] overflow-hidden rounded-full border-[10px] border-[#374f65]">
-            <Image src={publicAsset("/assets/plan-visit/2d725.png")} alt={t.nightImageAlt} fill sizes="(min-width: 1024px) 458px, 90vw" className="object-cover" />
+            <Image src={publicAsset("/assets/plan-visit/2d725.webp")} alt={t.nightImageAlt} fill sizes="(min-width: 1024px) 458px, 90vw" className="object-cover" />
           </div>
         </div>
       </section>
 
       <section className="mx-auto grid max-w-[1440px] items-center gap-9 px-6 py-10 md:px-9 lg:grid-cols-2" aria-labelledby="accessibility-title">
-        <PlanVisitRevealImage src={publicAsset("/assets/plan-visit/187c8.png")} alt={t.accessibilityImageAlt} />
+        <PlanVisitRevealImage src={publicAsset("/assets/plan-visit/187c8.webp")} alt={t.accessibilityImageAlt} />
         <div><h2 id="accessibility-title" className={headingClass}>{t.accessibility}</h2>{t.accessibilityParagraphs.map((paragraph) => <p key={paragraph} className={`mt-6 ${bodyClass}`}>{paragraph}</p>)}</div>
       </section>
 
@@ -99,7 +107,7 @@ export default async function PlanYourVisitPage({ params }: { params: Promise<{ 
               <div className="flex items-start gap-2"><Image src={publicAsset(`/assets/plan-visit/${guidelineIcons[index]}`)} alt="" width={24} height={24} /><h4 className="text-xl leading-6 text-[#7a5135]">{item.title}</h4></div>
               <p className="mt-4 text-base leading-5 text-black">{item.description}</p>
             </div>)}
-            <div className="flex flex-col items-start gap-3"><p className="text-xl leading-9 text-black">{t.detailedGuidelines}</p><Link href={`/${locale}/faq`} className={`inline-flex min-h-11 items-center rounded-full border border-[#3e332e] bg-white px-5 py-2 text-lg ${focusClass}`}>{t.clickHere}</Link></div>
+            <div className="flex flex-col items-start gap-3"><p className="text-xl leading-9 text-black">{t.detailedGuidelines}</p><Link href={`/${locale}/faq`} aria-label={`${t.clickHere}: ${t.faqs}`} className={`inline-flex min-h-11 items-center rounded-full border border-[#3e332e] bg-white px-5 py-2 text-lg ${focusClass}`}>{t.clickHere}</Link></div>
           </div>
         </div>
       </section>

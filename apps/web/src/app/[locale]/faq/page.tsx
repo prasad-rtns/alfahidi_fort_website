@@ -1,16 +1,24 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FaqAccordion } from "@/components/faq/faq-accordion";
 import { getTranslations } from "@/lib/i18n/translations";
 import { publicAsset } from "@/lib/routing/public-asset";
 import type { Locale } from "@/lib/content/site-content";
+import { buildPageMetadata, summarize } from "@/lib/seo/page-metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = getTranslations(locale).faq;
+  return buildPageMetadata({ locale, pagePath: "/faq", title: t.title, description: summarize(t.introFirst) });
+}
 
 export default async function FaqPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const t = getTranslations(locale).faq;
 
   return (
-    <main className="faq-page bg-white text-black">
+    <main id="main-content" tabIndex={-1} className="faq-page bg-white text-black">
       <section className="relative flex h-[416px] items-center justify-center overflow-hidden pt-24 text-white">
         <Image src={publicAsset("/assets/faq/faq-hero.png")} alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#243646]/85" />

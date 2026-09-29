@@ -115,7 +115,9 @@ export function Header({ locale }: { locale: Locale }) {
             {t.bookTickets}
           </Link>
           <span className="flex items-center gap-4 text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
-            <Link href={languageHref}>{t.language}</Link>
+            <Link href={languageHref} lang={oppositeLocale} hrefLang={oppositeLocale}>
+              {t.language}
+            </Link>
             <span className="h-14 w-0.5 shrink-0 self-center bg-[#d3d7da]" aria-hidden="true" />
             <button type="button" aria-label={t.search} className="grid size-8 place-items-center">
               <Search size={20} aria-hidden="true" />
@@ -169,7 +171,7 @@ export function Header({ locale }: { locale: Locale }) {
             </Link>
           ))}
           <div className="flex items-center justify-between py-2 text-base">
-            <Link href={languageHref} onClick={() => setIsMenuOpen(false)}>
+            <Link href={languageHref} lang={oppositeLocale} hrefLang={oppositeLocale} onClick={() => setIsMenuOpen(false)}>
               {t.language}
             </Link>
             <Search size={20} aria-hidden="true" />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter, Noto_Sans, Noto_Sans_Arabic } from "next/font/google";
+import { Noto_Sans, Noto_Sans_Arabic } from "next/font/google";
 import { notFound } from "next/navigation";
 import "@/styles/globals.css";
 import { Footer } from "@/components/chrome/footer";
@@ -7,17 +7,8 @@ import { Header } from "@/components/chrome/header";
 import { BrowserEventRejectionGuard } from "@/components/runtime/browser-event-rejection-guard";
 import { SmoothScrollProvider } from "@/lib/scroll/smooth-scroll-provider";
 import { isLocale, type Locale } from "@/lib/content/site-content";
-
-const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["500", "600", "700"]
-});
-
-const body = Inter({
-  subsets: ["latin"],
-  variable: "--font-body"
-});
+import { getTranslations } from "@/lib/i18n/translations";
+import { getSiteUrl } from "@/lib/seo/page-metadata";
 
 const homeLatin = Noto_Sans({
   subsets: ["latin"],
@@ -31,10 +22,20 @@ const homeArabic = Noto_Sans_Arabic({
   display: "swap"
 });
 
-export const metadata: Metadata = {
-  title: "Al Fahidi Fort",
-  description: "A cinematic museum and tourism experience for Al Fahidi Fort."
-};
+// Only the prerendered locales exist; any other value is a 404 and is never rendered on demand.
+export const dynamicParams = false;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const { meta } = getTranslations(locale as Locale);
+
+  return {
+    metadataBase: new URL(`${getSiteUrl()}/`),
+    title: { default: meta.siteName, template: `%s | ${meta.siteName}` },
+    description: meta.description,
+    applicationName: meta.siteName
+  };
+}
 
 export function generateStaticParams() {
   return [{ locale: "en" }, { locale: "ar" }];
@@ -55,10 +56,14 @@ export default async function LocaleLayout({
 
   const locale = requestedLocale as Locale;
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const { a11y } = getTranslations(locale);
 
   return (
-    <html lang={locale} dir={dir} className={`${display.variable} ${body.variable} ${homeLatin.variable} ${homeArabic.variable}`}>
+    <html lang={locale} dir={dir} className={`${homeLatin.variable} ${homeArabic.variable}`}>
       <body>
+        <a href="#main-content" className="skip-link">
+          {a11y.skipToContent}
+        </a>
         <SmoothScrollProvider>
           <div className="min-h-screen bg-pearl text-ink">
             <BrowserEventRejectionGuard />

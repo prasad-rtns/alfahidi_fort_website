@@ -42,6 +42,15 @@ describe("Header", () => {
     expect(screen.getAllByRole("link", { name: "Contact Us" })[0]).toHaveAttribute("href", "/en/contact-us");
   });
 
+  it("marks the language switch with the language of its text", () => {
+    render(<Header locale="en" />);
+
+    for (const link of screen.getAllByRole("link", { name: getTranslations("en").header.language })) {
+      expect(link).toHaveAttribute("lang", "ar");
+      expect(link).toHaveAttribute("hreflang", "ar");
+    }
+  });
+
   it("keeps the current page, query string, and hash when changing language", async () => {
     const t = getTranslations("en").header;
     navigationState.pathname = "/en/contact-us";

@@ -13,8 +13,8 @@ export function Footer({ locale }: { locale: Locale }) {
           <p className="text-[clamp(0.75rem,1.35vw,1.25rem)] uppercase">{t.stayConnected}</p>
           <p className="mt-1 max-w-[442px] text-[clamp(0.75rem,1.35vw,1.25rem)] leading-snug">{t.updates}</p>
           <form className="mt-5 flex max-w-[520px] rounded-full bg-white" action="#">
-            <input className="min-w-0 flex-1 rounded-full border-2 border-[#243646] bg-transparent px-5 py-2 text-[clamp(0.75rem,1.2vw,1.125rem)] outline-none" type="email" placeholder={t.email} aria-label={t.email} />
-            <button className="-ml-8 rounded-full border-2 border-[#243646] bg-[#243646] px-5 py-2 text-[clamp(0.75rem,1.2vw,1.125rem)] text-[#d3d7da] md:px-7" type="submit">
+            <input className="min-w-0 flex-1 rounded-full border-2 border-[#243646] bg-transparent px-5 py-2 text-[clamp(0.75rem,1.2vw,1.125rem)] outline-none" type="email" name="email" autoComplete="email" placeholder={t.email} aria-label={t.email} />
+            <button className="-ms-8 rounded-full border-2 border-[#243646] bg-[#243646] px-5 py-2 text-[clamp(0.75rem,1.2vw,1.125rem)] text-[#d3d7da] md:px-7" type="submit">
               {t.subscribe}
             </button>
           </form>

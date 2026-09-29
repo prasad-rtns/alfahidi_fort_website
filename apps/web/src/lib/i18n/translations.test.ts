@@ -19,6 +19,16 @@ describe("translations", () => {
     expect(getTranslations("en").header.contactUs).toBe("Contact Us");
   });
 
+  it("treats an unknown locale from the URL as not found instead of crashing", () => {
+    expect(() => getTranslations("zz" as never)).toThrow(/NEXT_HTTP_ERROR_FALLBACK;404/);
+  });
+
+  it("keeps the new metadata, accessibility and error strings aligned across languages", () => {
+    for (const section of ["meta", "a11y", "notFound", "error"] as const) {
+      expect(Object.keys(commonAr[section])).toEqual(Object.keys(commonEn[section]));
+    }
+  });
+
   it("returns Arabic translations", () => {
     expect(getTranslations("ar")).toBe(translations.ar);
     expect(getTranslations("ar").header.language).toBe("English");

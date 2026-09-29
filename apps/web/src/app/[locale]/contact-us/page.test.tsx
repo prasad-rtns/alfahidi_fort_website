@@ -40,13 +40,18 @@ describe("ContactUsPage", () => {
   });
 
   it("takes each page title and description from the editable JSON", async () => {
+    // The layout's title template appends the localized site name ("%s | Al Fahidi Fort").
     expect(await generateMetadata({ params: Promise.resolve({ locale: "en" }) })).toMatchObject({
-      title: `${contactEn.title} | ${contactEn.fortName}`,
-      description: contactEn.introFirst
+      title: contactEn.title,
+      description: contactEn.introFirst,
+      openGraph: { title: `${contactEn.title} | ${contactEn.fortName}`, locale: "en_AE" },
+      alternates: { canonical: "http://localhost:3000/en/contact-us" }
     });
     expect(await generateMetadata({ params: Promise.resolve({ locale: "ar" }) })).toMatchObject({
-      title: `${contactAr.title} | ${contactAr.fortName}`,
-      description: contactAr.introFirst
+      title: contactAr.title,
+      description: contactAr.introFirst,
+      openGraph: { title: `${contactAr.title} | ${contactAr.fortName}`, locale: "ar_AE" },
+      alternates: { canonical: "http://localhost:3000/ar/contact-us" }
     });
   });
 });
