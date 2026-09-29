@@ -12,12 +12,13 @@ import { useReducedMotion } from "@/lib/scroll/use-reduced-motion";
 import type { Locale } from "@/lib/content/site-content";
 
 type StoryCard = {
-  eyebrow: string;
+  subtitle: string;
   title: string;
   description: string;
   image: string;
   imageAlt: string;
   variant: "portrait" | "wide" | "circle";
+  imagePosition: "left" | "center";
 };
 
 const assets = {
@@ -584,7 +585,7 @@ function HeroSequence({ tickerText, copy }: { tickerText: string; copy: Sequence
 
       <div className="pointer-events-none absolute inset-x-0 bottom-[9vh] z-10 h-[34vh] bg-gradient-to-t from-[#243646]/55 via-[#243646]/18 to-transparent" />
 
-      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] font-['29LT_Azer',var(--font-body),Arial,sans-serif] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[62vh] md:w-[560px]">
+      <div className="absolute left-5 right-5 top-[14vh] z-20 w-[calc(100vw-40px)] max-w-[560px] text-[#d3d7da] [text-shadow:0_1px_4px_rgba(36,54,70,0.45)] md:left-[5.5vw] md:right-auto md:top-[52vh] md:w-[560px]">
         <p data-hero-copy className="text-[14px] leading-normal opacity-0 md:text-[16px]">
           <span>{copy.heroEyebrow}</span> <strong className="font-semibold text-white">{copy.heroDate}</strong>
         </p>
@@ -766,10 +767,11 @@ function EditorialStories({ copy }: { copy: SequenceCopy }) {
     { image: assets.fishing, variant: "circle" as const },
     { image: assets.architecture, variant: "circle" as const }
   ];
-  const stories = copy.secondaryStories.map((story, index) => ({
+  const stories = copy.stories.map((story, index) => ({
     ...story,
     image: storyImages[index]?.image ?? assets.origins,
-    variant: storyImages[index]?.variant ?? ("circle" as const)
+    variant: storyImages[index]?.variant ?? ("circle" as const),
+    imagePosition: index === 0 ? ("left" as const) : ("center" as const)
   }));
 
   return (
@@ -801,9 +803,8 @@ function FeaturedCeremonialCard({ copy }: { copy: SequenceCopy }) {
         <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 96px, 64px" className="absolute left-0 top-0 z-20 size-16 object-contain md:size-24" />
       </div>
       <div className="grid gap-1">
-        <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.ceremonialTitle}</h2>
-        <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.exhibitionUntil29}</p>
-        <p className="max-w-[360px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.ceremonialDescription}</p>
+        <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.discoverTitle}</h2>
+        <p className="max-w-[360px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.discoverDescription}</p>
         <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
           {copy.learnMore}
         </Link>
@@ -823,11 +824,11 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[0.92fr_1.08fr] md:gap-5">
         <div>
-          <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.historyTitle}</h2>
-          <p className="mt-1 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.exhibitionUntil29}</p>
+          <h2 className="text-[clamp(1.35rem,3.6vw,3.55rem)] leading-[0.98] text-black">{copy.landmarkTitle}</h2>
+          <p className="mt-1 text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{copy.landmarkSubtitle}</p>
         </div>
         <div className="grid content-start gap-3">
-          <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.historyDescription}</p>
+          <p className="text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{copy.landmarkDescription}</p>
           <Link href="#visit" className="w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
             {copy.learnMore}
           </Link>
@@ -839,7 +840,7 @@ function WideHistoryCard({ copy }: { copy: SequenceCopy }) {
 
 function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: string }) {
   const maskClass = story.variant === "wide" ? "aspect-[1.95/1] rounded-[999px]" : story.variant === "portrait" ? "aspect-[0.76/1] rounded-[999px]" : "aspect-square rounded-full";
-  const imagePositionClass = story.title === "Origins and visions" ? "object-left" : "object-center";
+  const imagePositionClass = story.imagePosition === "left" ? "object-left" : "object-center";
 
   return (
     <article data-reveal-card className="grid min-w-0 gap-4">
@@ -851,7 +852,7 @@ function StoryArticle({ story, learnMore }: { story: StoryCard; learnMore: strin
       </div>
       <div className="grid gap-1">
         <h2 className="text-[clamp(1.2rem,3.2vw,3.2rem)] leading-[0.98] text-black">{story.title}</h2>
-        <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{story.eyebrow}</p>
+        <p className="text-[clamp(0.58rem,1.4vw,0.875rem)] font-semibold text-black">{story.subtitle}</p>
         <p className="max-w-[430px] text-[clamp(0.58rem,1.35vw,0.875rem)] leading-snug text-black">{story.description}</p>
         <Link href="#visit" className="mt-1 w-max rounded-full border border-[#243646] px-3 py-0.5 text-[clamp(0.58rem,1.35vw,0.75rem)] font-semibold transition hover:bg-[#243646] hover:text-white">
           {learnMore}
@@ -872,9 +873,8 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
             <Image data-pop-image data-push-pop src={assets.guidedObject} alt="" width={1299} height={1787} sizes="min(80vw, 288px)" className="absolute left-[10%] top-[-4%] h-[108%] w-[80%] object-contain" />
           </div>
           <div>
-            <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.ceremonialTitle}</h2>
-            <p className="mt-2 text-base font-semibold">{copy.exhibitionUntil29}</p>
-            <p className="mt-4 max-w-[420px] text-base leading-snug">{copy.darkDescription}</p>
+            <h2 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.oldestTitle}</h2>
+            <p className="mt-4 max-w-[420px] text-base leading-snug">{copy.oldestDescription}</p>
           </div>
         </article>
 
@@ -883,8 +883,8 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
             <Image data-pop-image data-push-pop src={assets.conservation} alt="" fill sizes="90vw" className="object-cover grayscale" />
           </div>
           <div>
-            <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.conservationTitle}</h3>
-            <p className="mt-2 text-base font-semibold">{copy.exhibitionUntil29}</p>
+            <h3 className="font-display text-[clamp(2.4rem,13vw,4.4rem)] leading-[0.9]">{copy.artefactTitle}</h3>
+            <p className="mt-2 text-base font-semibold">{copy.artefactDescription}</p>
           </div>
           <Link href="#guided-tour" className="inline-flex h-11 w-max items-center justify-center rounded-full border border-[#d3d7da] px-5 text-lg transition hover:bg-white hover:text-[#243646]">
             {copy.guideTour}
@@ -906,12 +906,8 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
         </div>
 
         <div className="absolute left-[5.9%] top-[8.72%] z-20 w-[15.97%] font-display text-[#d3d7da]">
-          <h2 className="text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{copy.ceremonialTitle}</h2>
-          <p className="mt-1 whitespace-nowrap text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
-            <span className="text-white">{copy.heroEyebrow} </span>
-            <span>{copy.heroDate}</span>
-          </p>
-          <p className="mt-[6px] text-[clamp(0.72rem,1.39vw,20px)] leading-normal">{copy.darkDescription}</p>
+          <h2 className="home-oldest-title text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{copy.oldestTitle}</h2>
+          <p className="mt-[6px] text-[clamp(0.72rem,1.39vw,20px)] leading-normal">{copy.oldestDescription}</p>
         </div>
 
         <div className="absolute left-[2.5%] top-[2.79%] z-20 flex w-[11.53%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%]">
@@ -923,11 +919,8 @@ function DarkFeature({ copy }: { copy: SequenceCopy }) {
         </div>
 
         <div className="absolute left-[65.76%] top-[64.19%] z-20 w-[18.19%] font-display text-[#d3d7da]">
-          <h3 className="whitespace-pre-wrap text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{copy.conservationTitle}</h3>
-          <p className="whitespace-nowrap text-[clamp(0.72rem,1.39vw,20px)] leading-normal">
-            <span className="text-white">{copy.heroEyebrow} </span>
-            <span>{copy.heroDate}</span>
-          </p>
+          <h3 className="home-artefact-title whitespace-pre-wrap text-[clamp(1.8rem,3.47vw,50px)] leading-[0.84]">{copy.artefactTitle}</h3>
+          <p className="home-artefact-description text-[clamp(0.72rem,1.39vw,20px)] leading-normal">{copy.artefactDescription}</p>
         </div>
 
         <Link href="#guided-tour" className="absolute left-[56.67%] top-[91.4%] z-20 flex w-[13.61%] items-center justify-center rounded-full border border-[#d3d7da] px-[1.04%] py-[0.14%] font-display text-[clamp(1rem,2.08vw,30px)] leading-normal text-[#d3d7da] transition hover:bg-white hover:text-[#243646]">
@@ -951,11 +944,10 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.95fr_1.05fr] md:gap-6">
             <div>
-              <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.sourceTitle}</h2>
-              <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">{copy.exhibitionUntil29}</p>
+              <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.collectionsTitle}</h2>
             </div>
             <div className="grid gap-4">
-              <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.sourceDescription}</p>
+              <p className="text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.collectionsDescription}</p>
               <Link href="#explore" className="inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
                 {copy.learnMore}
               </Link>
@@ -971,9 +963,8 @@ function ClosingExhibitionBand({ copy }: { copy: SequenceCopy }) {
             <Image data-scroll-marker data-marker-wipe src={assets.marker} alt="" width={444} height={444} sizes="(min-width: 768px) 96px, 64px" className="absolute left-0 top-0 z-20 size-16 object-contain opacity-0 md:size-24" />
           </div>
           <div>
-            <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.ceremonialTitle}</h2>
-            <p className="mt-2 text-[clamp(0.58rem,1.4vw,1rem)] font-semibold text-[#243646]">{copy.exhibitionUntil29}</p>
-            <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.ceremonialShortDescription}</p>
+            <h2 className="font-display text-[clamp(1.35rem,4.8vw,5.6rem)] leading-[0.9] text-black">{copy.sharedMemoryTitle}</h2>
+            <p className="mt-4 text-[clamp(0.58rem,1.35vw,1.125rem)] leading-snug text-black/85">{copy.sharedMemoryDescription}</p>
             <Link href="#visit" className="mt-5 inline-flex h-8 w-max items-center justify-center whitespace-nowrap rounded-full border border-[#243646] px-4 text-[clamp(0.58rem,1.35vw,1rem)] font-semibold leading-none transition hover:bg-[#243646] hover:text-white">
               {copy.learnMore}
             </Link>

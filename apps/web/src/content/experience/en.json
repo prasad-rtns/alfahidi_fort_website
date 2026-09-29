@@ -1,0 +1,50 @@
+{
+  "aboutTitle": "About the Fort",
+  "aboutParagraphs": [
+    "Built in 1787, Al Fahidi Fort is one of Dubai's most enduring landmarks. What began as a watchtower evolved alongside the city itself, serving as a defensive stronghold, a ruler's residence, a seat of governance, and eventually Dubai's first museum.",
+    "Today, following years of careful restoration, the Fort enters a new chapter as a renewed museum experience. It invites visitors to discover the story of the Fort itself, explore its place within the wider history of Dubai and the region, and reflect on nearly 250 years of resilience, leadership and community."
+  ],
+  "aboutImageAlt": "Al Fahidi Fort courtyard and historic walls",
+  "experienceTitle": "About the Experience",
+  "experienceParagraphs": [
+    "Every space within Al Fahidi Fort tells a different chapter of its story.",
+    "Discover galleries and spaces that reveal different chapters of the Fort's story. Explore remarkable collections, authentic artefacts and historic spaces that bring nearly 250 years of Dubai's history to life.",
+    "From the evolution of defence to centuries of Islamic craftsmanship, each experience offers a deeper understanding of the people, places and traditions that have shaped the city."
+  ],
+  "experienceImageAlt": "Al Fahidi Fort illuminated at night",
+  "exploreTitle": "Explore Al Fahidi Fort",
+  "exploreParagraphs": [
+    "Every gallery reveals a different chapter of Al Fahidi Fort's story.",
+    "From the history of the Fort itself to its place within the wider Islamic world, the memories preserved within its walls, and its connection to the UAE's defensive heritage, each gallery offers a new perspective on one of Dubai's oldest and most significant historical landmarks."
+  ],
+  "galleries": [
+    {
+      "title": "A Landmark Across the Ages",
+      "subtitle": "Where Dubai's story begins.",
+      "description": "Begin your journey with the story of Al Fahidi Fort itself. Discover how the Fort evolved from a watchtower into a defensive stronghold, a ruler's residence, a seat of governance and eventually Dubai's first museum. Through archival material, authentic objects and digital interpretation, explore nearly 250 years of history and the enduring role the Fort has played in shaping the city.",
+      "imageAlt": "Traditional boat representing Dubai's early history"
+    },
+    {
+      "title": "Islamic Arms and Armour",
+      "subtitle": "Centuries of craftsmanship.",
+      "description": "Explore one of the region's most significant collections of Islamic arms and armour. Swords, daggers, firearms, armour and ceremonial objects reveal centuries of craftsmanship, innovation and cultural exchange, while highlighting the Fort's enduring relationship with defence and protection.",
+      "imageAlt": "Historic decorated dagger"
+    },
+    {
+      "title": "Memories of Al Fahidi Fort",
+      "subtitle": "The people who brought the Fort to life.",
+      "description": "Within these walls are the stories of those who lived, worked and passed through Al Fahidi Fort. Through personal stories and immersive storytelling, discover the moments, memories and everyday lives that shaped the Fort across generations.",
+      "imageAlt": "Historic doorway inside Al Fahidi Fort"
+    },
+    {
+      "title": "Defence Fortifications",
+      "subtitle": "A wider story of protection and resilience.",
+      "description": "Discover how Al Fahidi Fort connects to a wider network of forts and watchtowers across the Emirates, and how these structures protected communities and trade routes.",
+      "imageAlt": "Historic shield from the defence collection"
+    }
+  ],
+  "journeyEyebrow": "Continue Your Journey",
+  "journeyTitle": "Every gallery reveals a different chapter",
+  "journeyDescription": "Together, they tell the story of a city, its people and the landmark that has stood alongside them for generations.",
+  "planYourVisit": "Plan Your Visit"
+}

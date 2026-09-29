@@ -7,22 +7,10 @@ import { Menu, Search, X } from "lucide-react";
 import { AlFahidiEmblem, AlFahidiWordmark, GovernmentOfDubaiMark } from "@/components/chrome/brand-assets";
 import { isDomEventRejection } from "@/components/runtime/browser-event-rejection-guard";
 import { getTranslations } from "@/lib/i18n/translations";
+import { normalizeBasePath, stripAppBasePath } from "@/lib/routing/header-routes";
 import type { Locale } from "@/lib/content/site-content";
 
-function normalizeBasePath(value: string | undefined) {
-  const trimmed = value?.trim();
-  if (!trimmed || trimmed === "/") return "";
-  return `/${trimmed.replace(/^\/+|\/+$/g, "")}`;
-}
-
 const appBasePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
-
-function stripAppBasePath(pathname: string) {
-  if (!appBasePath) return pathname;
-  if (pathname === appBasePath) return "/";
-  if (pathname.startsWith(`${appBasePath}/`)) return pathname.slice(appBasePath.length);
-  return pathname;
-}
 
 export function Header({ locale }: { locale: Locale }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -32,14 +20,14 @@ export function Header({ locale }: { locale: Locale }) {
   const oppositeLocale = locale === "en" ? "ar" : "en";
   const homeHref = `/${locale}`;
   const [languageHref, setLanguageHref] = useState(`/${oppositeLocale}`);
-  const logicalPathname = stripAppBasePath(pathname ?? "");
+  const logicalPathname = stripAppBasePath(pathname ?? "", appBasePath);
   const isHome = logicalPathname === homeHref;
   const showEmblem = isScrolled || isMenuOpen || !isHome;
   const t = getTranslations(locale).header;
 
   useEffect(() => {
     const updateLanguageHref = () => {
-      const currentPath = stripAppBasePath(window.location.pathname);
+      const currentPath = stripAppBasePath(window.location.pathname, appBasePath);
       const localizedPath = currentPath.replace(new RegExp(`^/${locale}(?=/|$)`), `/${oppositeLocale}`);
       setLanguageHref(`${localizedPath}${window.location.search}${window.location.hash}`);
     };
@@ -67,7 +55,7 @@ export function Header({ locale }: { locale: Locale }) {
   }, []);
 
   const navLinks = [
-    { href: `${homeHref}#visit`, label: t.planYourVisit },
+    { href: `${homeHref}/plan-your-visit`, label: t.planYourVisit },
     { href: `${homeHref}/faq`, label: t.faq },
     { href: `${homeHref}/contact-us`, label: t.contactUs }
   ];
@@ -94,6 +82,8 @@ export function Header({ locale }: { locale: Locale }) {
     const prefetchRoutes = () => {
       void Promise.resolve(router.prefetch(`${homeHref}/faq`)).catch(handlePrefetchError);
       void Promise.resolve(router.prefetch(`${homeHref}/contact-us`)).catch(handlePrefetchError);
+      void Promise.resolve(router.prefetch(`${homeHref}/experience`)).catch(handlePrefetchError);
+      void Promise.resolve(router.prefetch(`${homeHref}/plan-your-visit`)).catch(handlePrefetchError);
     };
 
     if ("requestIdleCallback" in window) {
@@ -115,13 +105,13 @@ export function Header({ locale }: { locale: Locale }) {
   }, [homeHref, router]);
 
   return (
-    <header className={`fixed left-0 right-0 top-0 z-50 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:px-[2.7vw] md:py-4 ${isScrolled || isMenuOpen ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"}`}>
+    <header className={`fixed left-0 right-0 top-0 z-50 px-5 py-4 text-[#d3d7da] transition-colors duration-300 md:px-[2.7vw] md:py-4 ${isScrolled || isMenuOpen || !isHome ? "bg-[#243646] shadow-[0_1px_0_rgba(255,255,255,0.18)]" : "bg-transparent"}`}>
       <div className="mx-auto flex max-w-[1368px] items-end justify-between gap-4">
         <div className="hidden min-w-0 items-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <Link href={homeHref} aria-label={t.government} className="relative -ml-3 self-center md:-ml-5">
             <GovernmentOfDubaiMark className="h-[30px] w-[94px]" />
           </Link>
-          <Link href={`${homeHref}#tickets`} className="self-center rounded-full border border-current px-4 py-1.5 text-[clamp(1rem,1.35vw,1.625rem)] leading-none transition hover:bg-[#d3d7da] hover:text-[#243646]">
+          <Link href={`${homeHref}/plan-your-visit#tickets`} className="self-center rounded-full border border-current px-4 py-1.5 text-[clamp(1rem,1.35vw,1.625rem)] leading-none transition hover:bg-[#d3d7da] hover:text-[#243646]">
             {t.bookTickets}
           </Link>
           <span className="flex items-center gap-4 text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
@@ -131,7 +121,7 @@ export function Header({ locale }: { locale: Locale }) {
               <Search size={20} aria-hidden="true" />
             </button>
           </span>
-          <Link href={`${homeHref}#explore`} className="self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
+          <Link href={`${homeHref}/experience`} aria-current={logicalPathname === `${homeHref}/experience` ? "page" : undefined} className={`self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none ${logicalPathname === `${homeHref}/experience` ? "underline underline-offset-4" : ""}`}>
             {t.experience}
           </Link>
         </div>
@@ -143,7 +133,7 @@ export function Header({ locale }: { locale: Locale }) {
         <div className="hidden min-w-0 items-end justify-end gap-[clamp(1rem,1.6vw,1.9rem)] lg:flex">
           <nav className="mr-[clamp(1.8rem,4vw,4.75rem)] flex items-center gap-[clamp(0.9rem,1.4vw,1.25rem)] self-center text-[clamp(1rem,1.35vw,1.625rem)] leading-none">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={logicalPathname === link.href ? "underline underline-offset-4" : undefined}>
+              <Link key={link.href} href={link.href} aria-current={logicalPathname === link.href ? "page" : undefined} className={logicalPathname === link.href ? "underline underline-offset-4" : undefined}>
                 {link.label}
               </Link>
             ))}
@@ -167,10 +157,10 @@ export function Header({ locale }: { locale: Locale }) {
         </button>
 
         <div className={`absolute left-0 right-0 top-full grid gap-2 bg-[#243646] px-5 pb-5 pt-2 text-lg font-semibold shadow-[0_16px_32px_rgba(0,0,0,0.18)] transition lg:hidden ${isMenuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"}`}>
-          <Link href={`${homeHref}#tickets`} onClick={() => setIsMenuOpen(false)} className="rounded-full border border-current px-5 py-2 text-center">
+          <Link href={`${homeHref}/plan-your-visit#tickets`} onClick={() => setIsMenuOpen(false)} className="rounded-full border border-current px-5 py-2 text-center">
             {t.bookTickets}
           </Link>
-          <Link href={`${homeHref}#explore`} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
+          <Link href={`${homeHref}/experience`} onClick={() => setIsMenuOpen(false)} className="border-b border-white/15 py-2">
             {t.experience}
           </Link>
           {navLinks.map((link) => (

@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=29LT+Azer:wght@400&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,13 +14,18 @@
 html {
   background: #fbfbfb;
   scroll-behavior: auto;
+  scroll-padding-top: calc(var(--header-height) + 16px);
 }
 
 body {
   margin: 0;
   background: #fbfbfb;
-  font-family: var(--font-body), Arial, sans-serif;
+  font-family: var(--font-home-latin), Arial, sans-serif;
   letter-spacing: 0;
+}
+
+html[lang="ar"] body {
+  font-family: var(--font-home-arabic), Arial, sans-serif;
 }
 
 button,
@@ -115,13 +118,82 @@ svg {
 
 .sequence-page,
 .sequence-loading {
-  font-family: var(--font-body), Arial, sans-serif;
+  font-family: var(--font-home-latin), Arial, sans-serif;
 }
 
 .sequence-page .font-display,
 .sequence-loading .font-display {
-  font-family: var(--font-body), Arial, sans-serif;
+  font-family: inherit;
   font-weight: 400;
+}
+
+html[lang="ar"] .sequence-page,
+html[lang="ar"] .sequence-loading {
+  font-family: var(--font-home-arabic), Arial, sans-serif;
+}
+
+body:has(.sequence-page) header,
+body:has(.sequence-page) footer {
+  font-family: var(--font-home-latin), Arial, sans-serif;
+}
+
+html[lang="ar"] body:has(.sequence-page) header,
+html[lang="ar"] body:has(.sequence-page) footer {
+  font-family: var(--font-home-arabic), Arial, sans-serif;
+}
+
+.sequence-page #explore h2,
+.sequence-page #visit h2,
+.sequence-page #visit h3,
+.sequence-page #guided-tour h2 {
+  font-size: clamp(1.75rem, 3.5vw, 3.125rem);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.sequence-page #visit .home-oldest-title {
+  width: min(457px, 32vw);
+  overflow-wrap: normal;
+}
+
+.sequence-page #visit .home-artefact-title,
+.sequence-page #visit .home-artefact-description {
+  width: min(445px, 34vw);
+  overflow-wrap: normal;
+}
+
+.sequence-page #explore p,
+.sequence-page #visit p,
+.sequence-page #guided-tour p {
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sequence-page #explore a,
+.sequence-page #visit a,
+.sequence-page #guided-tour a {
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.sequence-page [data-hero-copy] > h1 {
+  font-size: clamp(1.75rem, 3.5vw, 3.125rem);
+  white-space: normal;
+}
+
+.sequence-page [data-hero-copy] > a {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sequence-page p[data-hero-copy] {
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+}
+
+.sequence-page [class*="landing-marquee"] {
+  font-size: clamp(1.25rem, 2.1vw, 1.875rem);
 }
 
 .sequence-page [data-guide-arm] {
@@ -197,7 +269,7 @@ svg {
   transform-origin: 50% 55%;
   transition:
     opacity 0.9s ease,
-    transform 2.65s cubic-bezier(0.16, 1, 0.3, 1);
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
@@ -210,7 +282,7 @@ svg {
   clip-path: inset(0 100% 100% 0);
   transform: none;
   transition:
-    clip-path 3.4s cubic-bezier(0.16, 1, 0.3, 1),
+    clip-path 1.5s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 1.25s ease;
   will-change: clip-path, opacity;
 }
@@ -221,7 +293,7 @@ svg {
 }
 
 .sequence-page [data-push-pop][data-pop-visible="true"] {
-  animation: editorial-image-settle 1.15s cubic-bezier(0.22, 1, 0.36, 1) 2.75s;
+  animation: editorial-image-settle 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.2s;
 }
 
 @keyframes editorial-image-settle {
@@ -243,6 +315,88 @@ svg {
   100% {
     transform: translate3d(0, 0, 0) scale(1);
     filter: brightness(1);
+  }
+}
+
+/* Experience page image timing: lower these values to make the push/pop start and finish sooner. */
+.experience-page {
+  --experience-pop-delay: 0.08s;
+  --experience-pop-duration: 1.2s;
+  --experience-pop-settle-gap: 0.1s;
+}
+
+.experience-page [data-experience-pop][data-pop-ready="true"] {
+  opacity: 0;
+  transform: translate3d(0, 34px, 0) scale(0.62);
+  transform-origin: 50% 55%;
+  transition:
+    opacity 0.5s ease var(--experience-pop-delay),
+    transform var(--experience-pop-duration) cubic-bezier(0.16, 1, 0.3, 1) var(--experience-pop-delay);
+  will-change: opacity, transform;
+}
+
+.experience-page [data-experience-pop][data-pop-ready="true"][data-pop-visible="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  animation: editorial-image-settle 1.15s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--experience-pop-delay) + var(--experience-pop-duration) + var(--experience-pop-settle-gap));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-page [data-experience-pop] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Plan Your Visit timing follows Home's scroll reveal. Lower these values to speed it up. */
+.plan-visit-page {
+  --plan-pop-duration: 1.65s;
+  --plan-pop-settle-delay: 1.75s;
+  --plan-marker-open-duration: 2.4s;
+}
+
+.plan-visit-page [data-plan-pop][data-reveal-ready="true"] {
+  opacity: 0;
+  transform: translate3d(0, 34px, 0) scale(0.62);
+  transform-origin: 50% 55%;
+  transition:
+    opacity 0.9s ease,
+    transform var(--plan-pop-duration) cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.plan-visit-page [data-plan-pop][data-reveal-ready="true"][data-pop-visible="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  animation: editorial-image-settle 1.15s cubic-bezier(0.22, 1, 0.36, 1) var(--plan-pop-settle-delay);
+}
+
+.plan-visit-page [data-plan-marker][data-reveal-ready="true"] {
+  opacity: 0;
+  clip-path: inset(0 100% 100% 0);
+  transition:
+    clip-path var(--plan-marker-open-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 1.25s ease;
+  will-change: clip-path, opacity;
+}
+
+.plan-visit-page [data-plan-marker][data-reveal-ready="true"][data-marker-visible="true"] {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+}
+
+html[dir="rtl"] .plan-visit-page [data-plan-marker][data-reveal-ready="true"]:not([data-marker-visible="true"]) {
+  clip-path: inset(0 0 100% 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-visit-page [data-plan-pop],
+  .plan-visit-page [data-plan-marker] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    animation: none !important;
   }
 }
 

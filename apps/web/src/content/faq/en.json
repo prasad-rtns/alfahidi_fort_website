@@ -1,0 +1,20 @@
+{
+  "title": "Frequently Asked Questions",
+  "introFirst": "Planning your visit? Here you'll find answers to some of the most commonly asked questions about Al Fahidi Fort, including information about opening hours, tickets, accessibility, visitor services and your museum experience.",
+  "introSecond": "If you can't find the information you're looking for, please don't hesitate to contact us.",
+  "contactUs": "Contact Us",
+  "items": [
+    {
+      "question": "What is Al Fahidi Fort?",
+      "answer": "Built in 1787, Al Fahidi Fort is one of Dubai's most important historic landmarks. Over the years it has served as a defensive stronghold, a seat of governance and Dubai's first museum. Today it shares the stories of the city, its people and its heritage."
+    },
+    {
+      "question": "What are the sections of the museum?",
+      "answer": "The museum experience takes visitors through exhibitions, historic spaces, learning experiences and stories connected to Dubai's history and the life of the Fort."
+    },
+    {
+      "question": "What is the collection of the museum?",
+      "answer": "The collection brings together historic objects, archival photographs, media and personal stories that trace the development of Dubai and the heritage of Al Fahidi Fort."
+    }
+  ]
+}
